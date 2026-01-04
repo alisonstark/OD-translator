@@ -1,2 +1,181 @@
-# OD-translator
-Offensive-Defensive Translator converts offensive commands and attacker tradecraft into structured defensive intelligence mapped to MITRE ATT&amp;CK, enabling detection engineering and SOC workflows.
+# Offensive–Defensive Translator
+
+## Overview
+
+The **Offensive–Defensive Translator** is a cybersecurity analysis and enrichment engine designed to systematically translate offensive tradecraft into actionable defensive intelligence. Its primary objective is to bridge the cognitive and operational gap between how attackers operate (red team / adversary perspective) and how defenders detect, investigate, and respond to threats (blue team / SOC perspective).
+
+Rather than treating offensive commands or techniques as isolated indicators, the project contextualizes them within:
+
+* the **MITRE ATT&CK framework**,
+* relevant **telemetry sources** (endpoint, network, logs),
+* and **defensive detection and response considerations**.
+
+The output is structured, machine-readable, and suitable for use in detection engineering, alert triage, threat hunting, and educational contexts.
+
+---
+
+## Problem Statement
+
+Offensive knowledge is abundant in cybersecurity: blogs, proof-of-concepts, red team reports, malware analyses, and exploit write-ups. However, this information is often:
+
+* unstructured,
+* attacker-centric,
+* and disconnected from how SOC teams actually monitor and defend environments.
+
+Conversely, defenders often work with alerts, logs, and detections without fully understanding the original attacker intent or technique behind them.
+
+The **Offensive–Defensive Translator** addresses this mismatch by providing a deterministic way to translate offensive artifacts into defender-focused intelligence.
+
+---
+
+## Core Capabilities
+
+* Ingest offensive artifacts (commands, LOLBins usage, execution patterns)
+* Normalize and analyze attacker intent
+* Map behavior to **MITRE ATT&CK tactics and techniques**
+* Enrich output with:
+
+  * defensive explanations
+  * detection opportunities
+  * relevant telemetry sources
+* Produce **structured JSON output** suitable for automation or analysis
+
+---
+
+## High-Level Architecture
+
+The project follows a layered architecture to ensure clarity, extensibility, and separation of concerns.
+
+```
+Input Layer
+  └── Offensive Artifact (command / technique / behavior)
+        ↓
+Parsing & Normalization Layer
+  └── Tokenization, cleanup, intent extraction
+        ↓
+Analysis & Mapping Layer
+  └── MITRE ATT&CK tactic & technique mapping
+        ↓
+Defensive Enrichment Layer
+  └── Detection logic, telemetry, SOC context
+        ↓
+Output Layer
+  └── Structured JSON (exportable)
+```
+
+Each layer is intentionally decoupled, allowing future expansion (e.g., multiple input types or additional enrichment sources).
+
+---
+
+## Defensive Enrichment Explained
+
+The **defensive enrichment** step is the core differentiator of this project.
+
+At this stage, the tool answers questions such as:
+
+* *What is the attacker trying to achieve?*
+* *How would this activity manifest in logs or telemetry?*
+* *Which data sources are most relevant for detection?*
+* *What should a SOC analyst look for during investigation?*
+
+This transforms raw attacker behavior into defender-oriented intelligence, rather than simple classification.
+
+---
+
+## Example
+
+### Input
+
+```text
+rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"
+```
+
+### Output (simplified)
+
+```json
+{
+  "input_command": "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\"",
+  "mitre_mapping": {
+    "tactic": "Defense Evasion",
+    "technique": "Signed Binary Proxy Execution",
+    "technique_id": "T1218"
+  },
+  "analysis": {
+    "attacker_intent": "Execute malicious code via a trusted Windows binary",
+    "execution_context": "LOLBins abuse"
+  },
+  "defensive_enrichment": {
+    "telemetry_sources": [
+      "Sysmon Event ID 1",
+      "Windows Process Creation Logs"
+    ],
+    "detection_opportunities": [
+      "Suspicious rundll32 command-line patterns",
+      "Abnormal parent-child process relationships"
+    ],
+    "soc_notes": "Commonly used for fileless execution and phishing payloads"
+  }
+}
+```
+
+---
+
+## Intended Use Cases
+
+* **SOC Analysts**: improve alert triage and investigation context
+* **Detection Engineers**: design detections grounded in attacker behavior
+* **Threat Hunters**: pivot from known techniques to observable signals
+* **Students and Learners**: understand how red team actions translate into blue team visibility
+* **Portfolio Projects**: demonstrate applied defensive thinking
+
+---
+
+## Design Principles
+
+* **Defender-first mindset**: outputs are optimized for blue team usage
+* **Structured over narrative**: machine-readable formats over prose
+* **Extensibility**: new techniques, inputs, and enrichments can be added incrementally
+* **Clarity over completeness**: focus on explainable, practical intelligence
+
+---
+
+## Roadmap
+
+### Phase 1 — Core Translator (Current)
+
+* Command-based input support
+* MITRE ATT&CK mapping
+* JSON output schema
+* Manual enrichment logic
+
+### Phase 2 — Detection-Oriented Expansion
+
+* Predefined detection patterns
+* Mapping to common EDR/SIEM telemetry
+* Improved process relationship analysis
+
+### Phase 3 — Advanced Enrichment
+
+* Correlation between multiple commands
+* Technique chaining (attack paths)
+* Confidence scoring
+
+### Phase 4 — Ecosystem Integration (Future)
+
+* Export formats for SIEM rules
+* Sigma-like detection templates
+* Integration with threat intel feeds
+
+---
+
+## Project Status
+
+This project is under active development and is intentionally designed to evolve alongside the author's focus on SOC operations, detection engineering, and blue team workflows.
+
+Contributions, ideas, and critical feedback are welcome.
+
+---
+
+## Disclaimer
+
+This project is intended strictly for **defensive, educational, and research purposes**. It does not aim to enable or facilitate malicious activity.
