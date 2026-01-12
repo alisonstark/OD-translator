@@ -137,6 +137,10 @@ rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"
 * **Extensibility**: new techniques, inputs, and enrichments can be added incrementally
 * **Clarity over completeness**: focus on explainable, practical intelligence
 
+## Minimum Python version
+**Recommended minimum version: 3.6+**
+Project has function annotations and modern packaging layout but no syntax requiring Python ≥3.8/3.10 (no walrus, match, or TypedDict/Annotated usage found), and pyproject.toml contains no explicit requires-python.
+
 ---
 
 ## Roadmap
