@@ -21,3 +21,21 @@ CMD_003_INDICATORS = (
     "wmic",
     "ftp "
 )
+
+UNIX_SHELL_004_INDICATORS = (
+    "curl ",
+    "wget ",
+    "fetch ",
+    "lynx ",
+    "links ",
+    "tftp ",
+)
+
+LUA_011_INDICATORS = (
+    "http.request",
+    "socket.http",
+    "ssl.https",
+    "io.popen",
+    "os.execute",
+    "loadstring",
+)

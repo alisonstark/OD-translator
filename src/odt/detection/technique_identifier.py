@@ -3,6 +3,14 @@ def check_technique_name(
         sub_technique: str
 ) -> dict:
     
+    """
+    What's not ideal (but OK for now):
+
+            Hardcoded strings
+            No return default
+            No separation between technique metadata and logic
+    """
+    
     dic = {}
     if(technique_id == "T1059"):
         dic.update({"technique_name": "Command and Scripting Interpreter"})

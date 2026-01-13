@@ -1,12 +1,12 @@
 import re
 import src.odt.detection.indicators as indicators
 
-from src.odt.detection.technique_pattern_db import HEURISTIC_PATTERNS
+from src.odt.detection.technique_pattern_db import RULES
 
 # Analyze command strings against heuristic patterns
 def analyze(
         command: str
-) -> dict:
+) -> list[dict]:
     """
     Analyzes a command string to determine if it matches known patterns
     associated with a specific technique ID.
@@ -16,20 +16,19 @@ def analyze(
         technique_id (str): The technique ID to check against. Default is "T1059".
 
     Returns:
-        dict (Example): 
-            [
+        List of ... 
+        {
+            "technique_id": "T1059",
+            "sub_technique_id": "T1059.001",
+            "behaviors": [
                 {
-                "tactic": "Execution",
-                "technique_id": "T1059.007",
-                "technique_name": "Command and Scripting Interpreter: JavaScript"
-                },
-
-                {
-                "tactic": "Defense Evasion",
-                "technique_id": "T1218.011",
-                "technique_name": "Signed Binary Proxy Execution: Rundll32"
+                    "behavior": "Encoded PowerShell execution",
+                    "evidence": ["-enc", "FromBase64String"],
+                    "confidence": 0.9
                 }
             ]
+        }
+
     """
 
     # Determine if the command is executed via PowerShell or CMD
@@ -40,27 +39,119 @@ def analyze(
     cmd_lower = command.lower()
     is_powershell = any(x in cmd_lower for x in ("powershell", "pwsh"))
     is_cmd = "cmd.exe" in cmd_lower
+    is_osascript = "osascript" in cmd_lower
+    # Define for Linux shell
+    is_shell = any(x in cmd_lower for x in ("/bin/sh", "/bin/bash", "bash", "sh"))
+    # Define for Lua
+    is_lua = any(x in cmd_lower for x in ("lua", "luajit"))
+
+    # TODO Implement for other interpreters
+    # Define for Python
+    is_python = any(x in cmd_lower for x in ("python", "python3", "py"))
+    # Define for JavaScript (Node.js)
+    is_javascript = any(x in cmd_lower for x in ("node", "nodejs", "node.exe"))
+    # Define for Visual Basic (cscript/wscript)
+    is_vbscript = any(x in cmd_lower for x in ("cscript", "wscript", "vbs", "vbscript"))
 
 
+    # TODO The loop structure enforces "first match wins"
+    # You will want multiple findings, not one verdict
     # This loop checks each pattern for the given technique ID
-    for technique_id, patterns in HEURISTIC_PATTERNS.items():
-        for pattern in patterns:
+    findings = []
+    for rule in RULES.items():
 
-            if not re.search(pattern, command, re.IGNORECASE):
-                continue
-            
-            
+            if re.search(rule["pattern"], command, re.IGNORECASE):
+                if rule["execution"] == "powershell" and is_powershell:
+                    matched = [
+                        x for x in indicators.POWERSHELL_001_INDICATORS if x in cmd_lower
+                    ]
 
-            return {
-                # TODO Include: Technique name --> Import from technique_identifier.py module
-                "technique_id": technique_id.split('.')[0],
-                "sub_technique_id": technique_id,   # Keep
-                "command": command,                 # Required for "input_command": str
-            }
+                    if matched:
+                        findings.append({
+                            "technique_id": rule["technique"],
+                            "sub_technique_id": f'{rule["technique"]}{rule["sub_technique"]}',
+                            "behaviors": [
+                                {
+                                    "behavior": "Encoded PowerShell execution",
+                                    "evidence": [],
+                                    "confidence": None
+                                }
+                            ]
+                        })
 
-    return {
-        "technique_name": None,
-        "technique_id": None,
-        "sub_technique_id": None,
-        "command": command,
-    }
+                elif rule["execution"] == "shell" and is_cmd:
+                    matched = [
+                        x in cmd_lower for x in indicators.CMD_003_INDICATORS if x in cmd_lower
+                        ]
+                    if matched:
+                        findings.append({
+                            "technique_id": rule["technique"],
+                            "sub_technique_id": f'{rule["technique"]}{rule["sub_technique"]}',
+                            "behaviors": [
+                                {
+                                    "behavior": "CMD execution via common utilities",
+                                    "evidence": [],
+                                    "confidence": None
+                                }
+                            ],
+                            "evidence": [],
+                        })
+
+                
+                elif rule["execution"] == "osascript":
+                    if "osascript" in cmd_lower and is_osascript:
+                        findings.append({
+                            "technique_id": rule["technique"],
+                            "sub_technique_id": f'{rule["technique"]}{rule["sub_technique"]}',
+                            "behaviors": [
+                                {
+                                    "behavior": "AppleScript execution",
+                                    "evidence": [],
+                                    "confidence": None
+                                }
+                            ],
+                            "evidence": [],
+                        })
+                
+                elif rule["execution"] == "shell" and is_shell:
+                    matched = [
+                        x for x in indicators.UNIX_SHELL_004_INDICATORS if x in cmd_lower
+                    ]
+
+                    if matched:
+                        findings.append({
+                            "technique_id": rule["technique"],
+                            "sub_technique_id": f'{rule["technique"]}{rule["sub_technique"]}',
+                            "behaviors": [
+                                {
+                                    "behavior": "Unix Shell execution via common utilities",
+                                    "evidence": [],
+                                    "confidence": None
+                                }
+                            ]
+                        })
+                
+                elif "lua" in rule["execution"] or "luajit" in rule["execution"]:
+                    if is_lua:
+                        
+                        matched = [
+                            x for x in indicators.LUA_011_INDICATORS if x in cmd_lower
+                        ]
+                        if matched:
+                            findings.append({
+                                "technique_id": rule["technique"],
+                                "sub_technique_id": f'{rule["technique"]}{rule["sub_technique"]}',
+                                "behaviors": [
+                                    {
+                                        "behavior": "Lua script execution",
+                                        "evidence": [],
+                                        "confidence": None
+                                    }
+                                ]
+                            })
+
+                # Implement logic for other interpreters as needed, e.g., Unix Shell, Python, JavaScript, etc.
+                # ...
+
+            return findings
+    return findings
