@@ -1,5 +1,6 @@
 import re
 import odt.detection.interpreter_markers as interpreter_markers
+import odt.detection.metadata as metadata
 
 from src.odt.detection.technique_pattern_db import RULES
 

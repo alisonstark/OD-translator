@@ -3,30 +3,28 @@ RULES = [
             # List of T1059 sub-technique IDs with associated regex patterns 
             # Design a few GENERAL patterns for spotting powershell suspicious code execution using command patterns for technique T1059.001:
         {
-
+            "id": "ps_downloadstring",
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\(New-Object\s+Net\.WebClient\)\.(DownloadString|DownloadData)\(", # DownloadString or DownloadData method
             "technique": "T1059",
-            "sub_technique": ".001",
-            "execution": "powershell"
+            "sub_technique": ".001"
         },
         {
-
+            "id": "ps_reflection_assembly_load",
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\[Reflection\.Assembly\]::Load\(", # Reflection Assembly Load
             "technique": "T1059",
-            "sub_technique": ".001",
-            "execution": "powershell"
+            "sub_technique": ".001"
         },
         {
+            "id": "ps_add_type_typedefinition",
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Add-Type\s+-TypeDefinition", # Add-Type with TypeDefinition
             "technique": "T1059",
-            "sub_technique": ".001",
-            "execution": "powershell"
+            "sub_technique": ".001"
         },
         {
+            "id": "ps_encoded_command",
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+-[eE]n(codedCommand)?\s+[A-Za-z0-9+/=]{20,}", # EncodedCommand with base64 string
             "technique": "T1059",
-            "sub_technique": ".001",
-            "execution": "powershell"
+            "sub_technique": ".001"
         },
         {
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+-[eE]x(ecute)?\s+\$[a-zA-Z0-9_]+\s*=\s*(iwr|Invoke-WebRequest|wget|curl|irm)\s+http[s]?://", # Execute with variable assignment from web request
