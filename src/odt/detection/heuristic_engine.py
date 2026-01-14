@@ -1,5 +1,5 @@
 import re
-import src.odt.detection.indicators as indicators
+import odt.detection.interpreter_markers as interpreter_markers
 
 from src.odt.detection.technique_pattern_db import RULES
 
@@ -63,7 +63,7 @@ def analyze(
             if re.search(rule["pattern"], command, re.IGNORECASE):
                 if rule["execution"] == "powershell" and is_powershell:
                     matched = [
-                        x for x in indicators.POWERSHELL_001_INDICATORS if x in cmd_lower
+                        x for x in interpreter_markers.POWERSHELL_001_INDICATORS if x in cmd_lower
                     ]
 
                     if matched:
@@ -81,7 +81,7 @@ def analyze(
 
                 elif rule["execution"] == "shell" and is_cmd:
                     matched = [
-                        x in cmd_lower for x in indicators.CMD_003_INDICATORS if x in cmd_lower
+                        x in cmd_lower for x in interpreter_markers.CMD_003_INDICATORS if x in cmd_lower
                         ]
                     if matched:
                         findings.append({
@@ -115,7 +115,7 @@ def analyze(
                 
                 elif rule["execution"] == "shell" and is_shell:
                     matched = [
-                        x for x in indicators.UNIX_SHELL_004_INDICATORS if x in cmd_lower
+                        x for x in interpreter_markers.UNIX_SHELL_004_INDICATORS if x in cmd_lower
                     ]
 
                     if matched:
@@ -135,7 +135,7 @@ def analyze(
                     if is_lua:
                         
                         matched = [
-                            x for x in indicators.LUA_011_INDICATORS if x in cmd_lower
+                            x for x in interpreter_markers.LUA_011_INDICATORS if x in cmd_lower
                         ]
                         if matched:
                             findings.append({
