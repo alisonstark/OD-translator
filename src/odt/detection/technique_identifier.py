@@ -1,7 +1,7 @@
 def check_technique_name(
         technique_id: str,
         sub_technique: str
-) -> dict:
+) -> str:
     
     """
     What's not ideal (but OK for now):
@@ -11,62 +11,47 @@ def check_technique_name(
             No separation between technique metadata and logic
     """
     
-    dic = {}
     if(technique_id == "T1059"):
-        dic.update({"technique_name": "Command and Scripting Interpreter"})
         if(sub_technique == "001"):
-            dic.update({"sub_technique_name": "Powershell"})
-            return dic
+            return "Powershell"
 
         elif(sub_technique == "002"):
-            dic.update({"sub_technique_name": "AppleScript"})
-            return dic
+            return "AppleScript"
         
         elif(sub_technique == "003"):
-            dic.update({"sub_technique_name": "Windows Command Shell"})
-            return dic
+            return "Windows Command Shell" 
         
         elif(sub_technique == "004"):
-            dic.update({"sub_technique_name": "Unix Shell"})
-            return dic
+            return "Unix Shell"
         
         elif(sub_technique == "005"):
-            dic.update({"sub_technique_name": "Visual Basic"})
-            return dic
+            return "Visual Basic"
         
         elif(sub_technique == "006"):
-            dic.update({"sub_technique_name": "Python"})
-            return dic
+            return "Python"
         
         elif(sub_technique == "007"):
-            dic.update({"sub_technique_name": "JavaScript"})
-            return dic
+            return "JavaScript"
         
         elif(sub_technique == "008"):
-            dic.update({"sub_technique_name": "Network Device CLI"})
-            return dic
+            return "Network Device CLI"
         
         elif(sub_technique == "009"):
-            dic.update({"sub_technique_name": "Cloud API"})
-            return dic
+            return "Cloud API"
         
         elif(sub_technique == "010"):
-            dic.update({"sub_technique_name": "AutoHotKey & AutoIT"})
-            return dic
+            return "AutoHotKey & AutoIT"
         
         elif(sub_technique == "011"):
-            dic.update({"sub_technique_name": "Lua"})
-            return dic
+            return "Lua"
         
         elif(sub_technique == "012"):
-            dic.update({"sub_technique_name": "Hypervisor CLI"})
-            return dic
+            return "Hypervisor CLI"
         
         elif(sub_technique == "013"):
-            dic.update({"sub_technique_name": "Container CLI/API"})
-            return dic
+            return "Container CLI/API"
 
         else:
-            return dic  # No sub-technique matched, dict is empty
+            return "Unknown Sub-technique"  # No sub-technique matched
                     
     # Define other techniques (Far future)

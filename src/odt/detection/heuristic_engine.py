@@ -1,6 +1,7 @@
 import re
 import odt.detection.interpreter_markers as interpreter_markers
 import odt.detection.metadata as metadata # To be used in future for behavior metadata
+import odt.detection.technique_identifier as technique_identifier
 
 from src.odt.detection.technique_pattern_db import RULES
 
@@ -71,9 +72,12 @@ def analyze(
             # indicators = metadata.PATTERN_METADATA[rule_id].get("indicators", []) are indicators of malicious behavior?
             # If needed, could cross-check indicators here # TODO Investigate further
             
+            # Build finding entry
             confidence = metadata.PATTERN_METADATA[rule_id].get("base_confidence", None)
             behavior = metadata.PATTERN_METADATA[rule_id]["behavior"]
+            technique_name = technique_identifier.check_technique_name(rule["technique"], rule["sub_technique"])
             findings.append({
+                "name": technique_name,
                 "technique_id": rule["technique"],
                 "sub_technique_id": f'{rule["technique"]}{rule["sub_technique"]}',
                 "behaviors": [
