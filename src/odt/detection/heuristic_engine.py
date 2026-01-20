@@ -57,7 +57,6 @@ def analyze(
             # Determine command context flags
             interpreter = metadata.PATTERN_METADATA[rule_id]["interpreter"]
             
-
             # Context flags for specific interpreters
             indicator_key = interpreter_markers.INTERPRETER_KEY_MAP.get(interpreter, None)
             indicator_map = interpreter_markers.INTERPRETER_INDICATORS.get(indicator_key)
@@ -67,15 +66,21 @@ def analyze(
             evidence = extract_evidence(indicator_map, cmd_lower)
             if not evidence:
                 continue  # No relevant indicators found, skip to next rule
-
-            # Where would I use the indicators key of the metadata?
-            # indicators = metadata.PATTERN_METADATA[rule_id].get("indicators", []) are indicators of malicious behavior?
-            # If needed, could cross-check indicators here # TODO Investigate further
             
             # Build finding entry
             confidence = metadata.PATTERN_METADATA[rule_id].get("base_confidence", None)
             behavior = metadata.PATTERN_METADATA[rule_id]["behavior"]
             technique_name = technique_identifier.check_technique_name(rule["technique"], rule["sub_technique"])
+
+            # Check if command contains any of the required indicators for this rule from the metadata indicators field
+            # If there is such field and command contains at least one of them, proceed; otherwise, skip this rule
+            if "indicators" in metadata.PATTERN_METADATA[rule_id]:
+                required_indicators = metadata.PATTERN_METADATA[rule_id]["indicators"]
+                if any(indicator in cmd_lower for indicator in required_indicators):
+                    confidence = min(1.0, confidence + 0.1)  # TODO Check a significant way to adjust confidence
+                else:
+                    continue  # Skip this rule if required indicators are not found
+
             findings.append({
                 "name": technique_name,
                 "technique_id": rule["technique"],
@@ -84,7 +89,7 @@ def analyze(
                     {
                         "behavior": behavior,
                         "evidence": evidence,
-                        "confidence": confidence
+                        "confidence": confidence,
                         # How to use metadata.PATTERN_METADATA[rule_id].get("indicators", []) here?
                         
                     }
