@@ -1,0 +1,45 @@
+{
+  "subtechniques": {
+    "T1059.001": {
+      "name": "PowerShell"
+    },
+    "T1059.002": {
+      "name": "AppleScript"
+    },
+    "T1059.003": {
+      "name": "Windows Command Shell"
+    },
+    "T1059.004": {
+      "name": "Unix Shell"
+    },
+    "T1059.005": {
+      "name": "Visual Basic"
+    },
+    "T1059.006": {
+      "name": "Python"
+    },
+    "T1059.007": {
+      "name": "JavaScript"
+    },
+    "T1059.008": {
+      "name": "Network Device CLI"
+    },
+    "T1059.009": {
+      "name": "Cloud API"
+    },
+    "T1059.010": {
+      "name": "AutoHotKey & AutoIT"
+    },
+    "T1059.011": {
+      "name": "Lua"
+    },
+    "T1059.012": {
+      "name": "Hypervisor CLI"
+    },
+    "T1059.013": {
+      "name": "Container CLI/API"
+    }
+  },
+  "technique_id": "T1059",
+  "technique_name": "Command and Scripting Interpreter"
+}

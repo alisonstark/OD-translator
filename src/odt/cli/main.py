@@ -1,6 +1,11 @@
 import argparse
 import json
 import sys
+from pathlib import Path
+
+if __package__ is None or __package__ == "":
+	src_root = Path(__file__).resolve().parents[2]
+	sys.path.insert(0, str(src_root))
 
 from odt.core.pipeline import translate_command
 

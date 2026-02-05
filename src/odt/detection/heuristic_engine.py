@@ -3,7 +3,7 @@ import odt.detection.interpreter_markers as interpreter_markers
 import odt.detection.metadata as metadata # To be used in future for behavior metadata
 import odt.detection.technique_identifier as technique_identifier
 
-from src.odt.detection.technique_pattern_db import RULES
+from odt.detection.technique_pattern_db import RULES
 
 # Helper function to extract evidence based on indicators
 def extract_evidence(indicator_map: dict, command_lower: str) -> dict:

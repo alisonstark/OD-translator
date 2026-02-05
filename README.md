@@ -120,6 +120,30 @@ rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"
 
 ---
 
+## How to Run
+
+Run the CLI module from the project root. The entry point is `odt.cli.main`.
+
+### Analyze a single command (argument)
+
+```bash
+py -m odt.cli.main "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
+```
+
+### Analyze a command via stdin
+
+```bash
+echo rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication" | py -m odt.cli.main
+```
+
+### Optional: refresh MITRE cache
+
+```bash
+py -m odt.cli.main "whoami" --refresh-mitre
+```
+
+---
+
 ## Intended Use Cases
 
 * **SOC Analysts**: improve alert triage and investigation context
