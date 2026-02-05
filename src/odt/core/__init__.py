@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from odt.core.pipeline import translate_command
 
 __all__ = ["translate_command"]
