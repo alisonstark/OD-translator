@@ -3,6 +3,7 @@
 Date: 2026-02-05
 
 ## Updates
+- Added `--include-secondary-techniques` flag to keep T1059-only output by default while allowing extra technique context on demand.
 - Added T1218.005 (mshta) proxy execution detection alongside T1059 detections.
 - Preserved inline JavaScript attribution for mshta while suppressing duplicate mshta JS signals.
 - Added WScript.Shell.Run -> cmd.exe detection for secondary shell hops.

@@ -130,6 +130,15 @@ Run the CLI module from the project root. The entry point is `odt.cli.main`.
 py -m odt.cli.main "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
 ```
 
+### Include secondary techniques
+
+By default, the CLI emits only T1059 detections. To include additional
+techniques used for chain context (for example T1027, T1218), pass:
+
+```bash
+py -m odt.cli.main "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\"" --include-secondary-techniques
+```
+
 ### Analyze a command via stdin
 
 ```bash
