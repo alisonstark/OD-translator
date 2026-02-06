@@ -1,5 +1,17 @@
 # Changes Summary (T1059 Minimal Pipeline + attackcti)
 
+Date: 2026-02-05
+
+## Updates
+- Added T1218.005 (mshta) proxy execution detection alongside T1059 detections.
+- Preserved inline JavaScript attribution for mshta while suppressing duplicate mshta JS signals.
+- Added WScript.Shell.Run -> cmd.exe detection for secondary shell hops.
+- Expanded cmd interpreter chaining to include mshta and updated evidence handling.
+- Added WScript.Shell.Run -> PowerShell detection for indirect PowerShell execution.
+- Added T1027 detection for JavaScript string concatenation obfuscation.
+
+---
+
 Date: 2026-02-04
 
 ## Goal

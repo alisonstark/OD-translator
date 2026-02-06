@@ -365,8 +365,26 @@ PATTERN_METADATA = {
         "interpreter": "cmd",
         "rule_scope": "cmd",
         "behavior": "Command executing interpreters",
-        "indicators": ["cmd.exe", "/c", "powershell", "wscript", "cscript"],
+        "indicators": ["cmd.exe", "/c", "powershell", "wscript", "cscript", "mshta"],
         "base_confidence": 0.75,
+    },
+
+    "wscript_shell_run_cmd": {
+        "launcher": "mshta",
+        "interpreter": "cmd",
+        "rule_scope": "cmd",
+        "behavior": "Command shell execution via WScript.Shell.Run",
+        "indicators": ["wscript.shell", "cmd.exe"],
+        "base_confidence": 0.85,
+    },
+
+    "wscript_shell_run_powershell": {
+        "launcher": "mshta",
+        "interpreter": "powershell",
+        "rule_scope": "powershell",
+        "behavior": "PowerShell execution via WScript.Shell.Run",
+        "indicators": ["powershell", "-nop", "-c"],
+        "base_confidence": 0.85,
     },
 
     "cmd_schtasks_create": {
@@ -772,8 +790,8 @@ PATTERN_METADATA = {
         "launcher": "mshta",
         "interpreter": "javascript",
         "rule_scope": "javascript",
-        "behavior": "JavaScript protocol execution via mshta",
-        "indicators": ["mshta", "javascript:"],
+        "behavior": "Inline JavaScript execution via mshta",
+        "indicators": ["javascript:", "ActiveXObject"],
         "base_confidence": 0.9,
     },
 
@@ -874,6 +892,30 @@ PATTERN_METADATA = {
         "behavior": "MSHTA generic command execution",
         "indicators": ["mshta"],
         "base_confidence": 0.6,
+    },
+
+    # -------------------------
+    # System Binary Proxy Execution (T1218)
+    # -------------------------
+    "t1218_mshta_proxy": {
+        "launcher": "mshta",
+        "interpreter": "lolbin",
+        "rule_scope": "lolbin",
+        "behavior": "mshta.exe used as a proxy execution host",
+        "indicators": ["mshta.exe", "mshta"],
+        "base_confidence": 0.95,
+    },
+
+    # -------------------------
+    # Obfuscated Files or Information (T1027)
+    # -------------------------
+    "js_string_concat_obfuscation": {
+        "launcher": "mshta",
+        "interpreter": "javascript",
+        "rule_scope": "javascript",
+        "behavior": "JavaScript string concatenation obfuscation",
+        "indicators": ["javascript:", "'+", "+'"],
+        "base_confidence": 0.7,
     },
 
     # -------------------------

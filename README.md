@@ -136,6 +136,25 @@ py -m odt.cli.main "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
 echo rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication" | py -m odt.cli.main
 ```
 
+#### PowerShell quoting tips
+
+PowerShell parses quotes and parentheses before the CLI sees them. Use one of the
+following patterns to pass complex commands reliably:
+
+Here-string (recommended):
+
+```powershell
+@'
+mshta.exe "javascript:var p='po'+'wer'+'shell';var w=new ActiveXObject('WScript.Shell');w.Run(p+' -c echo test',0)"
+'@ | py -m odt.cli.main
+```
+
+Or stop parsing with `--%`:
+
+```powershell
+py --% -m odt.cli.main mshta.exe "javascript:var p='po'+'wer'+'shell';var w=new ActiveXObject('WScript.Shell');w.Run(p+' -c echo test',0)"
+```
+
 ### Optional: refresh MITRE cache
 
 ```bash

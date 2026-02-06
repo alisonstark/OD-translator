@@ -252,9 +252,21 @@ RULES = [
         },
         {
             "id": "cmd_execute_command",
-            "pattern": r"cmd\.exe\s+/c\s+(powershell|pwsh|cmd|wscript|cscript)\.exe", 
+            "pattern": r"cmd\.exe\s+/c\s+(powershell|pwsh|cmd|wscript|cscript|mshta)(?:\.exe)?", 
             "technique": "T1059",
             "sub_technique": ".003"
+        },
+        {
+            "id": "wscript_shell_run_cmd",
+            "pattern": r"(?i)wscript\.shell.*\brun\s*\(\s*['\"]?cmd(?:\.exe)?\b",
+            "technique": "T1059",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "wscript_shell_run_powershell",
+            "pattern": r"(?i)wscript\.shell.*\brun\s*\(\s*['\"]{0,2}powershell(?:\.exe)?\b",
+            "technique": "T1059",
+            "sub_technique": ".001"
         },
         {
             "id": "cmd_schtasks_create",
@@ -516,7 +528,7 @@ RULES = [
         },
         {
             "id": "mshta_javascript",
-            "pattern": r"(?i)\bmshta\.exe\b\s+javascript:", 
+            "pattern": r"(?i)\bmshta\.exe\b\s+['\"]?javascript:", 
             "technique": "T1059",
             "sub_technique": ".007"
         },
@@ -585,6 +597,22 @@ RULES = [
             "pattern": r"(?i)\bmshta\.exe\b\s+.+", 
             "technique": "T1059",
             "sub_technique": ".007"
+        },
+
+        # System Binary Proxy Execution (T1218) - Mshta
+        {
+            "id": "t1218_mshta_proxy",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b",
+            "technique": "T1218",
+            "sub_technique": ".005"
+        },
+
+        # Obfuscated Files or Information (T1027)
+        {
+            "id": "js_string_concat_obfuscation",
+            "pattern": r"(?i)javascript:.*'[^']+'\s*\+\s*'[^']+'",
+            "technique": "T1027",
+            "sub_technique": ""
         },
         
         # Design a few high confidence general patterns for Network Device CLI suspicious code execution using command patterns for technique T1059.008:
