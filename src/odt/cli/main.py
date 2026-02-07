@@ -16,7 +16,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 	)
 	parser.add_argument(
 		"command",
-		nargs="?",
+		nargs=argparse.REMAINDER,
 		help="Command string to analyze. If omitted, read from stdin.",
 	)
 	parser.add_argument(
@@ -36,7 +36,7 @@ def main() -> int:
 	parser = build_arg_parser()
 	args = parser.parse_args()
 
-	command = args.command
+	command = " ".join(args.command).strip()
 	if not command:
 		command = sys.stdin.read().strip()
 		if not command:

