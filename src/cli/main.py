@@ -3,20 +3,25 @@ import json
 import sys
 from pathlib import Path
 
+# Ensure the src directory is in the Python path for imports when running this script directly, 
+# allowing the use of absolute imports regardless of the execution context.
 if __package__ is None or __package__ == "":
-	src_root = Path(__file__).resolve().parents[2]
+	src_root = Path(__file__).resolve().parent.parent
 	sys.path.insert(0, str(src_root))
 
-from odt.core.pipeline import translate_command
+from core.pipeline import translate_command
 
-
+# This script serves as the command-line interface for the ODT tool, 
+# allowing users to input a command string and receive MITRE ATT&CK technique mappings in JSON format. 
+# It supports reading from standard input if no command is provided as an argument, 
+# and includes options to refresh the MITRE cache and include secondary techniques in the output.
 def build_arg_parser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser(
 		description="Translate a command into MITRE ATT&CK mappings (T1059 by default)."
 	)
 	parser.add_argument(
 		"command",
-		nargs="?",
+		nargs=argparse.REMAINDER,
 		help="Command string to analyze. If omitted, read from stdin.",
 	)
 	parser.add_argument(
@@ -36,17 +41,20 @@ def main() -> int:
 	parser = build_arg_parser()
 	args = parser.parse_args()
 
-	command = args.command
+	# Combine command arguments into a single string, or read from stdin if no arguments provided
+	command = " ".join(args.command).strip()
 	if not command:
 		command = sys.stdin.read().strip()
 		if not command:
 			parser.error("No command provided via argument or stdin.")
 
+	# Translate the command and print the results as formatted JSON
 	result = translate_command(
 		command,
 		refresh_mitre=args.refresh_mitre,
 		include_secondary_techniques=args.include_secondary_techniques,
 	)
+	# Output the result as pretty-printed JSON for easy readability and further processing if needed.
 	print(json.dumps(result, indent=2))
 	return 0
 

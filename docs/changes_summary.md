@@ -1,5 +1,52 @@
 # Changes Summary (T1059 Minimal Pipeline + attackcti)
 
+Date: 2026-02-13
+
+## Major Enhancements: Enriched Detection Output with MITRE Tactics and Defensive Insights
+
+### Core Infrastructure
+- **Tactic Extraction from MITRE**: Extended `mitre.py` with `_extract_tactic()` function to parse `kill_chain_phases` from MITRE ATT&CK data
+  - Added `_build_technique_index()` to support querying any technique ID (T1059, T1218, T1027, etc.)
+  - Added `get_technique_tactic()` to retrieve tactics for any technique
+  
+### Detection System Enrichment
+- **Enhanced Detector Output**: Updated all three detection functions (`detect_t1059()`, `detect_t1218()`, `detect_t1027()`) to include:
+  - `tactic`: MITRE ATT&CK tactic (e.g., "Execution", "Defense Evasion")
+  - `attacker_intent`: Pattern-specific strategic intent from metadata (domain knowledge)
+  - `defensive_enrichment`: Complete defensive context with telemetry, detection opportunities, and SOC notes
+
+### Metadata Enrichment at Scale
+- **Pattern Metadata Enhancement**: Expanded `metadata.py` structure for all 166+ entries with:
+  - `attacker_intent`: Why this pattern is dangerous from an attacker perspective (currently sparse to highlight gaps)
+  - `defensive_enrichment.telemetry_sources`: Where to find evidence (Sysmon, logs, etc.)
+    - PowerShell patterns: Sysmon Event ID 1, PowerShell operational logs (+ Event ID 3 for network)
+    - JavaScript/VBScript: Sysmon Event ID 1, WMI Event Logs (+ Event ID 3 for network)
+    - Command Shell: Sysmon Event ID 1, Windows Command Line Audit logs
+    - AppleScript: osascript audit logs (+ Event ID 3 for network)
+    - Python: Python process logs (+ Event ID 3 for network)
+    - Unix Shell: Bash audit logs, Linux process accounting
+    - Network Device: Network device audit logs
+  - `defensive_enrichment.detection_opportunities`: Specific indicators to monitor
+  - `defensive_enrichment.soc_notes`: Context and recommendations for analysts
+
+### Output Format Transformation
+- **Structured SOC-Ready Output** (`output.py`):
+  - Implemented `_enrich_detections()` function to transform raw detections
+  - New output structure with three main sections:
+    - `mitre_mapping`: Tactic, technique name, IDs (T1059, T1059.007, etc.)
+    - `analysis`: Behavior, attacker_intent, confidence, evidence
+    - `defensive_enrichment`: Telemetry sources, detection opportunities, SOC notes
+  - Provides intelligent defaults for entries without custom enrichment
+
+### Technical Implementation
+- File modifications:
+  - `src/odt/core/mitre.py`: +40 lines for tactic extraction
+  - `src/odt/core/detector.py`: Updated imports and all detection functions for enriched output
+  - `src/odt/core/output.py`: Refactored for new enriched structure
+  - `src/odt/detection/metadata.py`: 166 entries enriched with telemetry and defensive data
+
+---
+
 Date: 2026-02-05
 
 ## Updates
