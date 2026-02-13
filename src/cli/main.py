@@ -41,10 +41,7 @@ def main() -> int:
 	parser = build_arg_parser()
 	args = parser.parse_args()
 
-<<<<<<< HEAD:src/cli/main.py
 	# Combine command arguments into a single string, or read from stdin if no arguments provided
-=======
->>>>>>> ce3c7b738c560637900a13e11e6395dae730cb32:src/odt/cli/main.py
 	command = " ".join(args.command).strip()
 	if not command:
 		command = sys.stdin.read().strip()
