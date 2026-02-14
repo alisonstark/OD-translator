@@ -5,6 +5,8 @@ from core.mitre import get_subtechnique_name, get_technique_name, get_technique_
 from detection.metadata import PATTERN_METADATA
 from detection.technique_pattern_db import RULES
 
+# Default base confidence score for detections, which can be adjusted based on the presence and quality 
+# of evidence indicators.
 DEFAULT_BASE_CONFIDENCE = 0.5
 
 _GENERIC_EVIDENCE = {
@@ -23,7 +25,11 @@ _GENERIC_EVIDENCE = {
 
 _CHAIN_TOKENS = {"&&", "||", "|", ";"}
 
+# Helper functions for evidence categorization and confidence scoring, which analyze the matched indicators 
+# to determine the strength of the detection and adjust the confidence score accordingly. 
 
+# The categorization helps identify the types of evidence present (e.g., download behavior, obfuscation, chaining) 
+# and the scoring function combines these factors to produce a final confidence score for the detection.
 def _categorize_evidence(indicator: str) -> str:
     indicator_lower = indicator.lower()
     if re.search(r"http|https|curl|wget|bitsadmin|certutil|invoke-webrequest|webrequest", indicator_lower):
@@ -36,7 +42,12 @@ def _categorize_evidence(indicator: str) -> str:
         return "interpreter"
     return "other"
 
-
+# The confidence scoring function evaluates the quantity and diversity of evidence indicators, 
+# the presence of specific categories of evidence (e.g., chaining, download behavior), 
+# and the ratio of generic indicators to adjust the confidence score for the detection. 
+# This allows for a more nuanced assessment of the detection's reliability, 
+# where stronger and more varied evidence leads to a higher confidence score, 
+# while a high ratio of generic indicators may reduce confidence due to the increased likelihood of false positives.
 def score_confidence(base_confidence: float, evidence: List[str]) -> float:
     evidence = [item for item in evidence if item]
     evidence_count = len(evidence)
