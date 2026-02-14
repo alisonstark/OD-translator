@@ -1,6 +1,25 @@
 from typing import Any, Dict, List
 
 # This module defines the output structure for the ODT (Offense Detection Translator) system, 
+# which takes the original command, the normalized command, and the detections from various techniques
+# to build a structured output that can be used for reporting or further analysis.
+
+# This function is a helper to remove duplicate evidence items from the list, 
+# ensuring that the output is concise and does not contain redundant information.
+# There's a check for duplicates using a set to track seen items, and only unique items are added to the deduped list.
+# But this function serves as a safeguard to ensure that the evidence list in the final output does not contain redundant entries,
+# even if the detection logic might already be designed to avoid duplicates. It's a final step to ensure clean output.
+def _dedupe_evidence(evidence: List[str]) -> List[str]:
+    seen = set()
+    deduped = []
+    for item in evidence:
+        if item in seen:
+            continue
+        seen.add(item)
+        deduped.append(item)
+    return deduped
+
+# This module defines the output structure for the ODT (Offense Detection Translator) system, 
 # which takes the original command, the normalized command, and the detections from various techniques 
 # to build a structured output that can be used for reporting or further analysis.
 def build_output(
@@ -36,7 +55,7 @@ def _enrich_detections(detections: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                 "behavior": detection.get("behavior", "Suspicious activity detected"),
                 "attacker_intent": detection.get("attacker_intent", "Execute code via interpreter or proxy"),
                 "confidence": detection.get("confidence", 0.5),
-                "evidence": detection.get("evidence", []),
+                "evidence": _dedupe_evidence(detection.get("evidence", [])),
             },
         }
         

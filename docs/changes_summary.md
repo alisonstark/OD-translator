@@ -2,6 +2,11 @@
 
 Date: 2026-02-13
 
+## Confidence Scoring Update
+- **Evidence-driven confidence**: Replaced the hardcoded per-pattern `base_confidence` with a computed `confidence` score derived from evidence size and diversity.
+- **Metadata cleanup**: Removed all `base_confidence` entries from `metadata.py` to keep confidence logic centralized.
+- **Default prior**: Introduced a fixed baseline prior (0.5) used by the scoring function when no prior is provided.
+
 ## Major Enhancements: Enriched Detection Output with MITRE Tactics and Defensive Insights
 
 ### Core Infrastructure

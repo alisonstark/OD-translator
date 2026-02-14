@@ -118,6 +118,10 @@ rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"
 }
 ```
 
+### Confidence Scoring
+
+The `confidence` value is computed from the evidence for each detection. The system starts from a fixed baseline prior (0.5) and adjusts the score based on the amount and diversity of matched indicators, plus small bonuses for chaining/download signals and a penalty when the evidence is mostly generic tokens. The result is clamped to the 0.0–1.0 range to keep it consistent and explainable.
+
 ---
 
 ## How to Run

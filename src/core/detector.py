@@ -1,13 +1,78 @@
 import re
-from typing import Any, Dict, List, Set, Optional
+from typing import Any, Dict, List, Set
 
 from core.mitre import get_subtechnique_name, get_technique_name, get_technique_tactic
 from detection.metadata import PATTERN_METADATA
 from detection.technique_pattern_db import RULES
 
+DEFAULT_BASE_CONFIDENCE = 0.5
+
+_GENERIC_EVIDENCE = {
+    "http",
+    "https",
+    "-e",
+    "/c",
+    "cmd",
+    "bash",
+    "powershell",
+    "wscript",
+    "cscript",
+    "python",
+    "mshta",
+}
+
+_CHAIN_TOKENS = {"&&", "||", "|", ";"}
+
+
+def _categorize_evidence(indicator: str) -> str:
+    indicator_lower = indicator.lower()
+    if re.search(r"http|https|curl|wget|bitsadmin|certutil|invoke-webrequest|webrequest", indicator_lower):
+        return "download"
+    if re.search(r"base64|encoded|frombase64", indicator_lower):
+        return "obfuscation"
+    if indicator_lower in _CHAIN_TOKENS or re.search(r"&&|\|\||\||;", indicator_lower):
+        return "chaining"
+    if re.search(r"cmd|powershell|bash|python|wscript|cscript|mshta|rundll32", indicator_lower):
+        return "interpreter"
+    return "other"
+
+
+def score_confidence(base_confidence: float, evidence: List[str]) -> float:
+    evidence = [item for item in evidence if item]
+    evidence_count = len(evidence)
+    categories = {_categorize_evidence(item) for item in evidence}
+    diversity = len(categories)
+
+    has_chain = 1 if "chaining" in categories else 0
+    has_download = 1 if "download" in categories else 0
+
+    generic_hits = sum(1 for item in evidence if item.lower() in _GENERIC_EVIDENCE)
+    generic_ratio = (generic_hits / evidence_count) if evidence_count else 0.0
+    generic_penalty = 1 if generic_ratio >= 0.6 else 0
+
+    score = (
+        base_confidence
+        + 0.06 * min(evidence_count, 4)
+        + 0.07 * min(diversity, 3)
+        + 0.05 * has_chain
+        + 0.05 * has_download
+        - 0.04 * generic_penalty
+    )
+
+    return max(0.0, min(1.0, score))
+
 
 def _match_indicators(command_lower: str, indicators: List[str]) -> List[str]:
-    return [indicator for indicator in indicators if indicator.lower() in command_lower]
+    seen = set()
+    matches = []
+    for indicator in indicators:
+        if indicator.lower() not in command_lower:
+            continue
+        if indicator in seen:
+            continue
+        seen.add(indicator)
+        matches.append(indicator)
+    return matches
 
 # Helper functions for specific detection logic, such as determining primary scope for rule filtering 
 # and building technique names for T1218 sub-techniques.
@@ -100,7 +165,7 @@ def detect_t1059(command: str, refresh_mitre: bool = False) -> List[Dict[str, ob
                 "tactic": tactic,
                 "behavior": metadata.get("behavior", "Suspicious command pattern"),
                 "attacker_intent": metadata.get("attacker_intent", "Execute suspicious code via interpreter"),
-                "confidence": metadata.get("base_confidence", 0.5),
+                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
                 "evidence": evidence,
                 "defensive_enrichment": metadata.get("defensive_enrichment", {}),
             }
@@ -161,7 +226,7 @@ def detect_t1218(command: str) -> List[Dict[str, object]]:
                 "tactic": tactic,
                 "behavior": metadata.get("behavior", "Suspicious proxy execution"),
                 "attacker_intent": metadata.get("attacker_intent", "Execute code via signed binary proxy"),
-                "confidence": metadata.get("base_confidence", 0.5),
+                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
                 "evidence": evidence,
                 "defensive_enrichment": metadata.get("defensive_enrichment", {}),
             }
@@ -200,7 +265,7 @@ def detect_t1027(command: str) -> List[Dict[str, object]]:
                 "tactic": tactic,
                 "behavior": metadata.get("behavior", "Obfuscated content"),
                 "attacker_intent": metadata.get("attacker_intent", "Hide malicious code from detection"),
-                "confidence": metadata.get("base_confidence", 0.5),
+                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
                 "evidence": evidence,
                 "defensive_enrichment": metadata.get("defensive_enrichment", {}),
             }
