@@ -1,7 +1,13 @@
 import re
 from typing import Any, Dict, List, Set
 
-from core.mitre import get_subtechnique_name, get_technique_name, get_technique_tactic
+from core.mitre import (
+    get_subtechnique_name,
+    get_subtechnique_name_for,
+    get_technique_name,
+    get_technique_name_for,
+    get_technique_tactic,
+)
 from detection.metadata import PATTERN_METADATA
 from detection.technique_pattern_db import RULES
 
@@ -104,24 +110,115 @@ def _build_t1218_names(sub_id: str) -> Dict[str, str]:
         "subtechnique": f"T1218.{sub_id}",
     }
 
+
+def _get_default_technique_name(technique_id: str, refresh_mitre: bool = False) -> str:
+    mitre_name = get_technique_name_for(technique_id, refresh=refresh_mitre)
+    if mitre_name:
+        return mitre_name
+    if technique_id == "T1059":
+        return "Command and Scripting Interpreter"
+    if technique_id == "T1027":
+        return "Obfuscated Files or Information"
+    if technique_id == "T1218":
+        return "System Binary Proxy Execution"
+    return technique_id
+
+
+def _build_subtechnique_id(technique_id: str, sub_id: str) -> str:
+    normalized = (sub_id or "").lstrip(".")
+    return f"{technique_id}.{normalized}" if normalized else technique_id
+
 # The following functions implement the detection logic for specific MITRE ATT&CK techniques (T1059, T1218, T1027) 
 # based on predefined rules and patterns.
 # Each function analyzes the input command against relevant rules, extracts evidence, 
 # and constructs a list of findings with associated technique information, behavior descriptions, confidence scores, 
 # and evidence indicators.
-def detect_t1059(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+def _detect_technique_generic(
+    command: str,
+    technique_id: str,
+    refresh_mitre: bool = False,
+    rule_filter: Any = None,
+    evidence_builder: Any = None,
+    subtechnique_name_builder: Any = None,
+    technique_name_override: str | None = None,
+    tactic_override: str | None = None,
+    postprocess: Any = None,
+) -> List[Dict[str, object]]:
     command_lower = command.lower()
-
-    # Determine primary scope for rule filtering (e.g., cmd.exe /c) to reduce false positives, especially for mshta rules
-    primary_scope = _detect_primary_scope(command_lower)
-    technique_name = get_technique_name(refresh=refresh_mitre) or "Command and Scripting Interpreter"
     findings: List[Dict[str, object]] = []
     candidates: List[Dict[str, object]] = []
     matched_rule_ids: Set[str] = set()
 
-    # Suppress certain mshta-related rules if a JavaScript execution pattern is detected to avoid false positives,
-    # since mshta can be used for both command execution and JavaScript execution, 
-    # and the latter may not always indicate T1059 activity.
+    technique_name = technique_name_override or _get_default_technique_name(
+        technique_id,
+        refresh_mitre=refresh_mitre,
+    )
+    tactic_default = "Execution" if technique_id == "T1059" else "Defense Evasion"
+    tactic = tactic_override or get_technique_tactic(technique_id, refresh=refresh_mitre) or tactic_default
+
+    for rule in RULES:
+        if rule.get("technique") != technique_id:
+            continue
+
+        if not re.search(rule.get("pattern", ""), command, re.IGNORECASE):
+            continue
+
+        rule_id = rule.get("id")
+        metadata = PATTERN_METADATA.get(rule_id, {})
+
+        if rule_filter and not rule_filter(rule, metadata, command_lower):
+            continue
+
+        if evidence_builder:
+            evidence = evidence_builder(rule, metadata, command_lower)
+            if evidence is None:
+                continue
+        else:
+            indicators = metadata.get("indicators", [])
+            evidence = _match_indicators(command_lower, indicators)
+            if indicators and not evidence:
+                continue
+
+        sub_id = (rule.get("sub_technique") or "").lstrip(".")
+        subtechnique_id = _build_subtechnique_id(technique_id, sub_id)
+        if subtechnique_name_builder:
+            subtechnique_name = subtechnique_name_builder(sub_id, refresh_mitre)
+        else:
+            subtechnique_name = get_subtechnique_name_for(technique_id, sub_id, refresh=refresh_mitre)
+        if not subtechnique_name:
+            subtechnique_name = subtechnique_id if sub_id else technique_name
+
+        candidates.append(
+            {
+                "rule_id": rule_id,
+                "technique_id": technique_id,
+                "technique": technique_name,
+                "subtechnique_id": subtechnique_id,
+                "subtechnique": subtechnique_name,
+                "tactic": tactic,
+                "behavior": metadata.get("behavior", "Suspicious behavior"),
+                "attacker_intent": metadata.get("attacker_intent", "Likely malicious activity"),
+                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
+                "evidence": evidence,
+                "defensive_enrichment": metadata.get("defensive_enrichment", {}),
+            }
+        )
+        matched_rule_ids.add(rule_id)
+
+    if postprocess:
+        candidates = postprocess(candidates, matched_rule_ids)
+
+    for candidate in candidates:
+        candidate.pop("rule_id", None)
+        findings.append(candidate)
+
+    return findings
+
+
+def detect_t1059(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    command_lower = command.lower()
+    primary_scope = _detect_primary_scope(command_lower)
+
     mshta_js_suppress = {
         "mshta_activeX",
         "mshta_eval",
@@ -131,155 +228,107 @@ def detect_t1059(command: str, refresh_mitre: bool = False) -> List[Dict[str, ob
         "mshta_command",
     }
 
-    # Iterate through T1059 rules and apply filtering logic based on primary scope and evidence indicators.
-    for rule in RULES:
-        # Only consider rules explicitly associated with T1059 to maintain focus on the primary technique,
-        # while secondary techniques (T1027, T1218) are handled separately if the include_secondary_techniques flag is set.
-        if rule.get("technique") != "T1059":
-            continue
-        
-        # Use case-insensitive regex search to check if the command matches the rule's pattern,
-        if not re.search(rule.get("pattern", ""), command, re.IGNORECASE):
-            continue
-
-        rule_id = rule.get("id")
-        # Retrieve metadata for the matched rule to access indicators, behavior descriptions, and confidence scores.
-        metadata = PATTERN_METADATA.get(rule_id, {})
-
-        # Filter rules based on primary scope to reduce false positives, 
-        # especially for mshta rules which can be used in various contexts.
+    def rule_filter(rule: Dict[str, Any], metadata: Dict[str, Any], _: str) -> bool:
+        rule_id = rule.get("id", "")
         rule_scope = metadata.get("rule_scope", "")
-        # If the rule has a defined scope and it doesn't match the primary scope of the command, skip it.
         if primary_scope and rule_scope and rule_scope != primary_scope:
             if not rule_id.startswith("mshta_"):
-                continue
-        
-        # Check for required indicators in the command to validate the rule match, 
-        # and if indicators are defined but not found in the command, skip the rule.
+                return False
+        return True
+
+    def evidence_builder(rule: Dict[str, Any], metadata: Dict[str, Any], command_lower: str) -> List[str] | None:
         indicators = metadata.get("indicators", [])
         evidence = _match_indicators(command_lower, indicators)
         if indicators and not evidence:
-            continue
+            return None
+        return evidence
 
-        sub_id = (rule.get("sub_technique") or "").lstrip(".")
-        subtechnique_id = f"T1059.{sub_id}" if sub_id else "T1059"
-        subtechnique_name = get_subtechnique_name(sub_id, refresh=refresh_mitre) or subtechnique_id
-        tactic = get_technique_tactic("T1059", refresh=refresh_mitre) or "Execution"
+    def postprocess(candidates: List[Dict[str, object]], matched_rule_ids: Set[str]) -> List[Dict[str, object]]:
+        if "mshta_javascript" in matched_rule_ids:
+            return [
+                candidate
+                for candidate in candidates
+                if candidate.get("rule_id") not in mshta_js_suppress
+            ]
+        return candidates
 
-        candidates.append(
-            {
-                "rule_id": rule_id,
-                "technique_id": "T1059",
-                "technique": technique_name,
-                "subtechnique_id": subtechnique_id,
-                "subtechnique": subtechnique_name,
-                "tactic": tactic,
-                "behavior": metadata.get("behavior", "Suspicious command pattern"),
-                "attacker_intent": metadata.get("attacker_intent", "Execute suspicious code via interpreter"),
-                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
-                "evidence": evidence,
-                "defensive_enrichment": metadata.get("defensive_enrichment", {}),
-            }
-        )
-        matched_rule_ids.add(rule_id)
-
-    # If any mshta-related rules are matched and the command contains patterns indicative of JavaScript execution,
-    # suppress certain mshta rules that are more likely to indicate JavaScript execution rather than command execution 
-    # to reduce false positives in T1059 detection, since mshta can be used for both purposes.
-    if "mshta_javascript" in matched_rule_ids:
-        candidates = [
-            candidate
-            for candidate in candidates
-            if candidate.get("rule_id") not in mshta_js_suppress
-        ]
-    # Remove rule_id from candidates before adding to findings to clean up the output, 
-    # as rule_id is only used for internal processing and is not relevant to the final output structure.
-    for candidate in candidates:
-        candidate.pop("rule_id", None)
-        findings.append(candidate)
-
-    return findings
+    return _detect_technique_generic(
+        command,
+        "T1059",
+        refresh_mitre=refresh_mitre,
+        rule_filter=rule_filter,
+        evidence_builder=evidence_builder,
+        postprocess=postprocess,
+    )
 
 
-def detect_t1218(command: str) -> List[Dict[str, object]]:
-    command_lower = command.lower()
-    findings: List[Dict[str, object]] = []
-
-    for rule in RULES:
-        if rule.get("technique") != "T1218":
-            continue
-
-        if not re.search(rule.get("pattern", ""), command, re.IGNORECASE):
-            continue
-
+def detect_t1218(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    def evidence_builder(rule: Dict[str, Any], metadata: Dict[str, Any], command_lower: str) -> List[str] | None:
         rule_id = rule.get("id")
-        metadata = PATTERN_METADATA.get(rule_id, {})
-
-        if rule_id == "t1218_mshta_proxy":
-            evidence = ["mshta.exe"] if "mshta.exe" in command_lower else ["mshta"]
-        else:
-            indicators = metadata.get("indicators", [])
-            evidence = _match_indicators(command_lower, indicators)
-            if indicators and not evidence:
-                continue
-
-        sub_id = (rule.get("sub_technique") or "").lstrip(".")
-        subtechnique_id = f"T1218.{sub_id}" if sub_id else "T1218"
-        names = _build_t1218_names(sub_id)
-        tactic = get_technique_tactic("T1218") or "Defense Evasion"
-
-        findings.append(
-            {
-                "technique_id": "T1218",
-                "technique": names["technique"],
-                "subtechnique_id": subtechnique_id,
-                "subtechnique": names["subtechnique"],
-                "tactic": tactic,
-                "behavior": metadata.get("behavior", "Suspicious proxy execution"),
-                "attacker_intent": metadata.get("attacker_intent", "Execute code via signed binary proxy"),
-                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
-                "evidence": evidence,
-                "defensive_enrichment": metadata.get("defensive_enrichment", {}),
-            }
-        )
-
-    return findings
-
-
-def detect_t1027(command: str) -> List[Dict[str, object]]:
-    command_lower = command.lower()
-    findings: List[Dict[str, object]] = []
-
-    for rule in RULES:
-        if rule.get("technique") != "T1027":
-            continue
-
-        if not re.search(rule.get("pattern", ""), command, re.IGNORECASE):
-            continue
-
-        rule_id = rule.get("id")
-        metadata = PATTERN_METADATA.get(rule_id, {})
-
+        if rule_id == "mshta_proxy":
+            return ["mshta.exe"] if "mshta.exe" in command_lower else ["mshta"]
         indicators = metadata.get("indicators", [])
         evidence = _match_indicators(command_lower, indicators)
         if indicators and not evidence:
+            return None
+        return evidence
+
+    def subtechnique_name_builder(sub_id: str, refresh_mitre: bool) -> str:
+        mitre_name = get_subtechnique_name_for("T1218", sub_id, refresh=refresh_mitre)
+        if mitre_name:
+            return mitre_name
+        return _build_t1218_names(sub_id).get("subtechnique", f"T1218.{sub_id}")
+
+    return _detect_technique_generic(
+        command,
+        "T1218",
+        refresh_mitre=refresh_mitre,
+        evidence_builder=evidence_builder,
+        subtechnique_name_builder=subtechnique_name_builder,
+    )
+
+
+def detect_t1027(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    return _detect_technique_generic(
+        command,
+        "T1027",
+        refresh_mitre=refresh_mitre,
+    )
+
+
+def detect_technique(command: str, technique_id: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    if technique_id == "T1059":
+        return detect_t1059(command, refresh_mitre=refresh_mitre)
+    if technique_id == "T1218":
+        return detect_t1218(command, refresh_mitre=refresh_mitre)
+    if technique_id == "T1027":
+        return detect_t1027(command, refresh_mitre=refresh_mitre)
+
+    return _detect_technique_generic(
+        command,
+        technique_id,
+        refresh_mitre=refresh_mitre,
+    )
+
+
+def detect_secondary_techniques(
+    command: str,
+    primary_technique: str = "T1059",
+    refresh_mitre: bool = False,
+) -> List[Dict[str, object]]:
+    technique_ids: List[str] = []
+    seen: Set[str] = set()
+    for rule in RULES:
+        technique_id = rule.get("technique")
+        if not technique_id or technique_id == primary_technique:
             continue
+        if technique_id in seen:
+            continue
+        seen.add(technique_id)
+        technique_ids.append(technique_id)
 
-        tactic = get_technique_tactic("T1027") or "Defense Evasion"
-
-        findings.append(
-            {
-                "technique_id": "T1027",
-                "technique": "Obfuscated Files or Information",
-                "subtechnique_id": "T1027",
-                "subtechnique": "Obfuscated Files or Information",
-                "tactic": tactic,
-                "behavior": metadata.get("behavior", "Obfuscated content"),
-                "attacker_intent": metadata.get("attacker_intent", "Hide malicious code from detection"),
-                "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
-                "evidence": evidence,
-                "defensive_enrichment": metadata.get("defensive_enrichment", {}),
-            }
-        )
+    findings: List[Dict[str, object]] = []
+    for technique_id in technique_ids:
+        findings.extend(detect_technique(command, technique_id, refresh_mitre=refresh_mitre))
 
     return findings

@@ -3,7 +3,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-CACHE_FILE = ROOT_DIR / "data" / "mitre" / "attackcti_t1059.json"
+CACHE_FILE = ROOT_DIR / "data" / "mitre" / "attackcti_cache.json"
+LEGACY_CACHE_FILE = ROOT_DIR / "data" / "mitre" / "attackcti_t1059.json"
+CACHE_VERSION = 1
 
 
 def _to_dict(item: Any) -> Dict[str, Any]:
@@ -101,9 +103,71 @@ def _build_t1059_index(items: List[Dict[str, Any]]) -> Dict[str, Any]:
     return index
 
 
+def _build_full_index(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    index: Dict[str, Any] = {
+        "version": CACHE_VERSION,
+        "techniques": {},
+    }
+
+    for item in items:
+        dct = _to_dict(item)
+        if dct.get("type") != "attack-pattern":
+            continue
+
+        external_id = _extract_external_id(dct)
+        if not external_id:
+            continue
+
+        if "." in external_id:
+            base_id = external_id.split(".", 1)[0]
+            technique_entry = index["techniques"].setdefault(
+                base_id,
+                {
+                    "technique_id": base_id,
+                    "technique_name": None,
+                    "tactic": None,
+                    "subtechniques": {},
+                },
+            )
+            technique_entry["subtechniques"][external_id] = {
+                "name": dct.get("name"),
+                "tactic": _extract_tactic(dct),
+            }
+            continue
+
+        technique_entry = index["techniques"].setdefault(
+            external_id,
+            {
+                "technique_id": external_id,
+                "technique_name": None,
+                "tactic": None,
+                "subtechniques": {},
+            },
+        )
+        technique_entry["technique_name"] = dct.get("name")
+        technique_entry["tactic"] = _extract_tactic(dct)
+
+    t1059 = index["techniques"].get("T1059")
+    if t1059 and not t1059.get("technique_name") and t1059.get("subtechniques"):
+        t1059["technique_name"] = "Command and Scripting Interpreter"
+
+    return index
+
+
 def load_cache() -> Optional[Dict[str, Any]]:
     if CACHE_FILE.exists():
         return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+
+    if LEGACY_CACHE_FILE.exists():
+        legacy = json.loads(LEGACY_CACHE_FILE.read_text(encoding="utf-8"))
+        if isinstance(legacy, dict) and legacy.get("technique_id") == "T1059":
+            return {
+                "version": CACHE_VERSION,
+                "techniques": {
+                    "T1059": legacy,
+                },
+            }
+
     return None
 
 
@@ -112,16 +176,21 @@ def save_cache(data: Dict[str, Any]) -> None:
     CACHE_FILE.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
 
 
-def get_t1059_index(refresh: bool = False) -> Dict[str, Any]:
+def get_attackcti_cache(refresh: bool = False) -> Dict[str, Any]:
     if not refresh:
         cached = load_cache()
-        if cached:
+        if cached and cached.get("version") == CACHE_VERSION:
             return cached
 
     items = _fetch_attackcti_items()
-    index = _build_t1059_index(items)
+    index = _build_full_index(items)
     save_cache(index)
     return index
+
+
+def get_t1059_index(refresh: bool = False) -> Dict[str, Any]:
+    cache = get_attackcti_cache(refresh=refresh)
+    return cache.get("techniques", {}).get("T1059", _build_t1059_index([]))
 
 
 def get_technique_name(refresh: bool = False) -> Optional[str]:
@@ -162,16 +231,52 @@ def _build_technique_index(items: List[Dict[str, Any]], technique_id: str) -> Di
     return index
 
 
+def _build_subtechnique_index(items: List[Dict[str, Any]], technique_id: str) -> Dict[str, Any]:
+    index: Dict[str, Any] = {}
+
+    for item in items:
+        dct = _to_dict(item)
+        if dct.get("type") != "attack-pattern":
+            continue
+
+        external_id = _extract_external_id(dct)
+        if not external_id or not external_id.startswith(f"{technique_id}."):
+            continue
+
+        index[external_id] = {
+            "name": dct.get("name"),
+            "tactic": _extract_tactic(dct),
+        }
+
+    return index
+
+
 def get_technique_tactic(technique_id: str, refresh: bool = False) -> Optional[str]:
     """Get the tactic for a given technique ID (e.g., 'T1059' -> 'Execution')."""
-    # Special handling for T1059 which is cached
-    if technique_id == "T1059":
-        return get_t1059_index(refresh=refresh).get("tactic")
+    cache = get_attackcti_cache(refresh=refresh)
+    return cache.get("techniques", {}).get(technique_id, {}).get("tactic")
 
-    # For other techniques, fetch from attackcti
-    try:
-        items = _fetch_attackcti_items()
-        index = _build_technique_index(items, technique_id)
-        return index.get("tactic")
-    except Exception:
+
+def get_technique_name_for(technique_id: str, refresh: bool = False) -> Optional[str]:
+    if technique_id == "T1059":
+        return get_technique_name(refresh=refresh)
+    cache = get_attackcti_cache(refresh=refresh)
+    return cache.get("techniques", {}).get(technique_id, {}).get("technique_name")
+
+
+def get_subtechnique_name_for(
+    technique_id: str,
+    sub_id: str,
+    refresh: bool = False,
+) -> Optional[str]:
+    normalized = (sub_id or "").strip()
+    if not normalized:
         return None
+
+    if technique_id == "T1059":
+        return get_subtechnique_name(normalized, refresh=refresh)
+
+    key = normalized if normalized.startswith(f"{technique_id}.") else f"{technique_id}.{normalized.lstrip('.')}"
+
+    cache = get_attackcti_cache(refresh=refresh)
+    return cache.get("techniques", {}).get(technique_id, {}).get("subtechniques", {}).get(key, {}).get("name")

@@ -1,4 +1,5 @@
-from core.detector import detect_t1059, detect_t1027, detect_t1218
+from core.detector import detect_secondary_techniques, detect_t1059
+from core.mitre import get_attackcti_cache
 from core.output import build_output
 from core.parser import normalize_command
 
@@ -10,8 +11,14 @@ def translate_command(
     refresh_mitre: bool = False,
     include_secondary_techniques: bool = False,
 ) -> dict:
+    if include_secondary_techniques:
+        get_attackcti_cache(refresh=refresh_mitre)
     normalized = normalize_command(command)
     detections = detect_t1059(normalized, refresh_mitre=refresh_mitre)
     if include_secondary_techniques:
-        detections = detect_t1218(normalized) + detect_t1027(normalized) + detections
+        detections = detect_secondary_techniques(
+            normalized,
+            primary_technique="T1059",
+            refresh_mitre=refresh_mitre,
+        ) + detections
     return build_output(command, normalized, detections)

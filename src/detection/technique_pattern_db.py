@@ -18,26 +18,8 @@ RULES = [
             "sub_technique": ".001"
         },
         {
-            "id": "ps_add_type_typedefinition",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Add-Type\s+-TypeDefinition", # Add-Type with TypeDefinition
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
             "id": "ps_encoded_command",
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+-[eE]n(codedCommand)?\s+[A-Za-z0-9+/=]{20,}", # EncodedCommand with base64 string
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "ps_web_request_execute",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+-[eE]x(ecute)?\s+\$[a-zA-Z0-9_]+\s*=\s*(iwr|Invoke-WebRequest|wget|curl|irm)\s+http[s]?://", # Execute with variable assignment from web request
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "ps_web_request",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*(Invoke-WebRequest|Invoke-RestMethod|iwr|irm)\s+http[s]?://", # Web request commands
             "technique": "T1059",
             "sub_technique": ".001"
         },
@@ -66,12 +48,6 @@ RULES = [
             "sub_technique": ".001"
         },
         {
-            "id": "ps_webrequest_getresponse",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*System\.Net\.WebRequest.*GetResponse\s*\(", # WebRequest GetResponse
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
             "id": "ps_add_type_dllimport",
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Add-Type\s+.*DllImport", # Add-Type with DllImport
             "technique": "T1059",
@@ -84,62 +60,14 @@ RULES = [
             "sub_technique": ".001"
         },
         {
-            "id": "ps_invoke_command_scriptblock",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Invoke-Command\s+-ScriptBlock", # Invoke-Command with ScriptBlock
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "ps_start_process_argumentlist",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Start-Process\s+.*-ArgumentList", # Start-Process with ArgumentList
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "ps_executionpolicy_bypass",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*-ExecutionPolicy\s+Bypass", # ExecutionPolicy Bypass
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "ps_noprofile",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*-NoProfile", # NoProfile flag
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "ps_hidden_windowstyle",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*-WindowStyle\s+Hidden", # Hidden WindowStyle
+            "id": "ps_frombase64string_iex",
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*FromBase64String\s*\(.*\)\s*\|\s*(iex|Invoke-Expression)", # Base64 decode piped to IEX
             "technique": "T1059",
             "sub_technique": ".001"
         },
 
         
         # Design a few GENERAL patterns for spotting Apple Script suspicious code execution using command patterns for technique T1059.002:
-        {
-            "id": "as_download_from_url",
-            "pattern": r"osascript\s+-e\s+['\"][^'\"]*http[s]?://", # AppleScript downloading from URL
-            "technique": "T1059",
-            "sub_technique": ".002"
-        },
-        {
-            "id": "as_do_shell_script_with_url",
-            "pattern": r"osascript\s+-e\s+['\"][^'\"]*do shell script ['\"][^'\"]*http[s]?://", # AppleScript do shell script with URL
-            "technique": "T1059",
-            "sub_technique": ".002"
-        },
-        {
-            "id": "as_curl_download",
-            "pattern": r"osascript\s+-e\s+['\"][^'\"]*do shell script ['\"][^'\"]*curl\s+-O\s+http[s]?://", # AppleScript curl download
-            "technique": "T1059",
-            "sub_technique": ".002"
-        },
-        {
-            "id": "as_wget_download",
-            "pattern": r"osascript\s+-e\s+['\"][^'\"]*do shell script ['\"][^'\"]*wget\s+http[s]?://", # AppleScript wget download
-            "technique": "T1059",
-            "sub_technique": ".002"
-        },
         {
             "id": "as_base64_decode_to_bash",
             "pattern": r"osascript\s+-e\s+['\"][^'\"]*do shell script ['\"][^'\"]*base64\s+-D\s+['\"][A-Za-z0-9+/=]{20,}['\"]\s*\|\s*bash", # AppleScript base64 decode piped to bash
@@ -155,38 +83,8 @@ RULES = [
 
         # Design a few GENERAL patterns for spotting Windows Command Shell suspicious code execution using command patterns for technique T1059.003:
         {
-            "id": "cmd_certutil_urlcache_split",
-            "pattern": r"cmd\.exe\s+/c\s+certutil\s+-urlcache\s+-split\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_bitsadmin_transfer",
-            "pattern": r"cmd\.exe\s+/c\s+bitsadmin\s+/transfer\s+", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
             "id": "cmd_powershell_encoded_command",
             "pattern": r"cmd\.exe\s+/c\s+powershell\s+.*-e\s+[A-Za-z0-9+/=]{20,}", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_wmic_process_call_create",
-            "pattern": r"cmd\.exe\s+/c\s+wmic\s+process\s+call\s+create\s+", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_start_http_url",
-            "pattern": r"cmd\.exe\s+/c\s+start\s+.*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_ftp_script",
-            "pattern": r"cmd\.exe\s+/c\s+ftp\s+-s:", 
             "technique": "T1059",
             "sub_technique": ".003"
         },
@@ -209,26 +107,8 @@ RULES = [
             "sub_technique": ".003"
         },
         {
-            "id": "cmd_certutil_urlcache_split_f",
-            "pattern": r"cmd\.exe\s+/c\s+certutil\s+-urlcache\s+-split\s+-f\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_bitsadmin_transfer_s",
-            "pattern": r"cmd\.exe\s+/c\s+bitsadmin\s+/transfer\s+\S+\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
             "id": "cmd_powershell_encoded_command_s",
             "pattern": r"cmd\.exe\s+/c\s+powershell(\.exe)?\s+.*-(e|enc|encodedcommand)\s+[A-Za-z0-9+/=]{20,}", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_start_http_url_executable",
-            "pattern": r"cmd\.exe\s+/c\s+start\s+.*http[s]?://.*\.(exe|dll|js|vbs|hta|ps1|bat|cmd)", 
             "technique": "T1059",
             "sub_technique": ".003"
         },
@@ -251,48 +131,6 @@ RULES = [
             "sub_technique": ".003"
         },
         {
-            "id": "cmd_execute_command",
-            "pattern": r"cmd\.exe\s+/c\s+(powershell|pwsh|cmd|wscript|cscript|mshta)(?:\.exe)?", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "wscript_shell_run_cmd",
-            "pattern": r"(?i)wscript\.shell.*\brun\s*\(\s*['\"]?cmd(?:\.exe)?\b",
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "wscript_shell_run_powershell",
-            "pattern": r"(?i)wscript\.shell.*\brun\s*\(\s*['\"]{0,2}powershell(?:\.exe)?\b",
-            "technique": "T1059",
-            "sub_technique": ".001"
-        },
-        {
-            "id": "cmd_schtasks_create",
-            "pattern": r"cmd\.exe\s+/c\s+schtasks\s+/create", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "cmd_at_command",
-            "pattern": r"cmd\.exe\s+/c\s+at\s+", 
-            "technique": "T1059",
-            "sub_technique": ".003"
-        },
-        {
-            "id": "bash_curl_download",
-            "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+curl\s+-O\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".004"
-        },
-        {
-            "id": "bash_wget_download",
-            "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+wget\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".004"
-        },
-        {
             "id": "bash_base64_decode",
             "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+base64\s+-d\s+['\"][A-Za-z0-9+/=]{20,}['\"]\s*\|\s*bash", 
             "technique": "T1059",
@@ -305,62 +143,14 @@ RULES = [
             "sub_technique": ".004"
         },
         {
-            "id": "bash_perl_http_download",
-            "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+perl\s+-e\s+['\"][^'\"]*http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".004"
-        },
-        {
-            "id": "bash_python_http_download",
-            "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+python\s+-c\s+['\"][^'\"]*http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".004"
-        },
-        {
             "id": "bash_curl_execute",
             "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+curl\s+-O\s+http[s]?://.*\s+&&\s+(\S+)", 
             "technique": "T1059",
             "sub_technique": ".004"
         },
         {
-            "id": "cscript_vbs_execution",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*\.vbs\s+", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "mshta_vbs_execution",
-            "pattern": r"(?:mshta)(?:\.exe)?\s+http[s]?://.*\.vbs\s*", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "rundll32_vbs_execution",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*\.vbs\s*,\s*.*", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
             "id": "cscript_vbs_encoded_command",
             "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "cscript_vbs_create_object",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*CreateObject\s*\(\s*\"Scripting\.FileSystemObject\"\s*\)", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "cscript_vbs_execute",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*Execute\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "cscript_vbs_run",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*Run\s*\(", 
             "technique": "T1059",
             "sub_technique": ".005"
         },
@@ -371,80 +161,14 @@ RULES = [
             "sub_technique": ".005"
         },
         {
-            "id": "mshta_execute",
-            "pattern": r"(?:mshta)(?:\.exe)?\s+.*Execute\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "rundll32_execute",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*Execute\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "rundll32_run",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*Run\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "rundll32_from_base64",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*FromBase64String\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
-            "id": "rundll32_eval",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*Eval\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".005"
-        },
-        {
             "id": "cscript_vbs_encoded_command_chain",
             "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+\.vbs)", 
             "technique": "T1059",
             "sub_technique": ".005"
         },
         {
-            "id": "python_http_request",
-            "pattern": r"(?:python|python3|py)(?:\.exe)?\s+.*-c\s+['\"]import\s+urllib\.request;?\s*urllib\.request\.urlopen\(['\"]http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".006"
-        },
-        {
-             "id": "python_certutil_download_execute",
-            "pattern": r"cmd\.exe\s+/c\s+certutil\s+-urlcache\s+-split\s+-f\s+http[s]?://.*\s+&&\s+(\S+\.exe|\S+\.dll|\S+\.bat|\S+\.cmd|\S+\.ps1)", # certutil download and execute
-            "technique": "T1059",
-            "sub_technique": ".006"
-        },
-        {
-            "id": "python_requests_get",
-            "pattern": r"(?:python|python3|py)(?:\.exe)?\s+.*import\s+requests;?\s*requests\.get\(['\"]http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".006"
-        },
-        {
             "id": "python_exec_base64_decode",
             "pattern": r"(?:python|python3|py)(?:\.exe)?\s+.*exec\s*\(.*base64\.b64decode\(['\"][A-Za-z0-9+/=]{20,}['\"]\).*\)", 
-            "technique": "T1059",
-            "sub_technique": ".006"
-        },
-        {
-            "id": "python_os_system_curl",
-            "pattern": r"(?:python|python3|py)(?:\.exe)?\s+.*os\.system\s*\(\s*['\"]curl\s+-O\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".006"
-        },
-        {
-            "id": "python_subprocess_wget",
-            "pattern": r"(?:python|python3|py)(?:\.exe)?\s+.*subprocess\.Popen\s*\(\s*['\"]wget\s+http[s]?://", 
-            "technique": "T1059",
-            "sub_technique": ".006"
-        },
-        {
-            "id": "python_os_system_python",
-            "pattern": r"(?:python|python3|py)(?:\.exe)?\s+.*import\s+os;?\s*os\.system\s*\(\s*['\"]python\s+-c\s+['\"]import\s+urllib\.request;?\s*urllib\.request\.urlopen\(['\"]http[s]?://", 
             "technique": "T1059",
             "sub_technique": ".006"
         },
@@ -455,50 +179,8 @@ RULES = [
             "sub_technique": ".006"
         },
         {
-            "id": "cscript_js_execution",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*\.js\s+", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_js_execution",
-            "pattern": r"(?:mshta)(?:\.exe)?\s+http[s]?://.*\.js\s*", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "rundll32_js_execution",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*\.js\s*,\s*.*", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
             "id": "cscript_js_encoded_command",
             "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "cscript_js_create_object",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*CreateObject\s*\(\s*\"MSScriptControl\.ScriptControl\"\s*\)", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "cscript_js_eval",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*Eval\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "cscript_js_execute",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*Execute\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "cscript_js_run",
-            "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*Run\s*\(", 
             "technique": "T1059",
             "sub_technique": ".007"
         },
@@ -509,176 +191,16 @@ RULES = [
             "sub_technique": ".007"
         },
         {
-            "id": "mshta_js_eval",
-            "pattern": r"(?:mshta)(?:\.exe)?\s+.*Eval\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "rundll32_js_eval",
-            "pattern": r"(?:rundll32)(?:\.exe)?\s+.*Eval\s*\(", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
             "id": "cscript_js_encoded_command_chain",
             "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+\.js)", 
             "technique": "T1059",
             "sub_technique": ".007"
         },
-        {
-            "id": "mshta_javascript",
-            "pattern": r"(?i)\bmshta\.exe\b\s+['\"]?javascript:", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "rundll32_javascript",
-            "pattern": r"(?i)\brundll32\.exe\b\s+javascript:", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_http_file",
-            "pattern": r"(?i)\bmshta\.exe\b\s+https?:\/\/[^\s]+\.hta\b", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_local_file",
-            "pattern": r"(?i)\bmshta\.exe\b\s+.*\\(users|temp|appdata|downloads|public)\\[^\s]+\.hta\b", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_vbscript_url",
-            "pattern": r"(?i)\bmshta\.exe\b\s+vbscript:", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_about_url",
-            "pattern": r"(?i)\bmshta\.exe\b\s+about:", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "hta_application",
-            "pattern": r"(?i)<hta:application>", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_http_html_file",
-            "pattern": r"(?i)\bmshta\.exe\b\s+https?:\/\/[^\s]+\.(html?|php|asp|jsp)\b", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_activeX",
-            "pattern": r"(?i)\bmshta\.exe\b.*(activexobject|xmlhttp|adodb\.stream)", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_eval",
-            "pattern": r"(?i)\bmshta\.exe\b.*(eval\(|atob\(|chr\(|execute\()", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_chain_command",
-            "pattern": r"(?i)(cmd\.exe|powershell\.exe|wscript\.exe|rundll32\.exe).*\bmshta\.exe\b", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-        {
-            "id": "mshta_command",
-            "pattern": r"(?i)\bmshta\.exe\b\s+.+", 
-            "technique": "T1059",
-            "sub_technique": ".007"
-        },
-
-        # System Binary Proxy Execution (T1218) - Mshta
-        {
-            "id": "t1218_mshta_proxy",
-            "pattern": r"(?i)\bmshta(?:\.exe)?\b",
-            "technique": "T1218",
-            "sub_technique": ".005"
-        },
-
-        # Obfuscated Files or Information (T1027)
-        {
-            "id": "js_string_concat_obfuscation",
-            "pattern": r"(?i)javascript:.*'[^']+'\s*\+\s*'[^']+'",
-            "technique": "T1027",
-            "sub_technique": ""
-        },
         
         # Design a few high confidence general patterns for Network Device CLI suspicious code execution using command patterns for technique T1059.008:
         {
-            "id": "network_device_cli_wget",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+wget\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_curl",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+curl\s+-O\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_tftp",
-            "pattern": r"\btftp(?:\.exe)?\s+(?:-i\s+)?(?:\d{1,3}(?:\.\d{1,3}){3}|\[[a-fA-F0-9:]+\])\s+(?:get|put)\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {   
-            "id": "network_device_cli_certutil_download",
-            "pattern": r"\bcertutil(?:\.exe)?\s+-urlcache\s+-f\s+\S+\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_bitsadmin_transfer",
-            "pattern": r"\bbitsadmin(?:\.exe)?\s+/transfer\s+\S+\s+\S+\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_wmic_process_create",
-            "pattern": r"\bwmic\s+process\s+call\s+create\s+\"?.+\"?",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_base64_decode",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+echo\s+['\"][A-Za-z0-9+/=]{20,}['\"]\s*\|\s*base64\s+-d\s*\|\s*(bash|sh|ksh|zsh|dash)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_perl_download",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+perl\s+-e\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_python_download",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+python\s+-c\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
             "id": "network_device_cli_download_and_execute",
             "pattern": r"(?:ssh|telnet)\s+.*\s+(curl\s+-O|wget|tftp\s+-g)\s+http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_execute_command",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+(bash|sh|ksh|zsh|dash|perl|python|php|ruby)(?:\.exe)?\s+",
             "technique": "T1059",
             "sub_technique": ".008"
         },
@@ -688,81 +210,9 @@ RULES = [
             "technique": "T1059",
             "sub_technique": ".008"
         },
-        {
-            "id": "network_device_cli_tftp_download_execute",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+tftp\s+-g\s+http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_perl_download_execute",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+perl\s+-e\s+['\"][^'\"]*http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_python_download_execute",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+python\s+-c\s+['\"][^'\"]*http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_curl_execute",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+curl\s+-O\s+http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_wget_execute",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+wget\s+http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
-        {
-            "id": "network_device_cli_execute_chain_command",
-            "pattern": r"(?:ssh|telnet)\s+.*\s+(bash|sh|ksh|zsh|dash|perl|python|php|ruby)(?:\.exe)?\s+.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".008"
-        },
         #   Design a few high confidence general patterns for Cloud API (including native AWS, Azure, GCP) suspicious code execution 
         #   using command patterns for technique T1059.009:
 
-        {
-            "id": "cloud_api_aws_lambda_invoke",
-            "pattern": r"aws\s+lambda\s+invoke\s+--function-name\s+\S+\s+--payload\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_azure_function_invoke",
-            "pattern": r"az\s+functionapp\s+function\s+invoke\s+--name\s+\S+\s+--function-name\s+\S+\s+--data\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_gcp_cloud_function_invoke",
-            "pattern": r"gcloud\s+functions\s+call\s+\S+\s+--data\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_aws_s3_cp",
-            "pattern": r"aws\s+s3\s+cp\s+http[s]?://\S+\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_azure_storage_blob_download",
-            "pattern": r"az\s+storage\s+blob\s+download\s+--container-name\s+\S+\s+--name\s+\S+\s+--file\s+\S+\s+--account-name\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_gcp_storage_cp",
-            "pattern": r"gsutil\s+cp\s+gs://\S+\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
         {
             "id": "cloud_api_invoke_and_execute",
             "pattern": r"(aws\s+lambda\s+invoke|az\s+functionapp\s+function\s+invoke|gcloud\s+functions\s+call)\s+.*http[s]?://.*\s+&&\s+(\S+)",
@@ -771,30 +221,6 @@ RULES = [
         },
         {
             "id": "cloud_api_storage_download_and_execute",
-            "pattern": r"(aws\s+s3\s+cp|az\s+storage\s+blob\s+download|gsutil\s+cp)\s+http[s]?://\S+.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_invoke_command",
-            "pattern": r"(aws\s+lambda\s+invoke|az\s+functionapp\s+function\s+invoke|gcloud\s+functions\s+call)\s+.*",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_storage_download_command",
-            "pattern": r"(aws\s+s3\s+cp|az\s+storage\s+blob\s+download|gsutil\s+cp)\s+http[s]?://\S+\s+\S+",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_invoke_chain_command",
-            "pattern": r"(aws\s+lambda\s+invoke|az\s+functionapp\s+function\s+invoke|gcloud\s+functions\s+call)\s+.*http[s]?://.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".009"
-        },
-        {
-            "id": "cloud_api_storage_download_chain_command",
             "pattern": r"(aws\s+s3\s+cp|az\s+storage\s+blob\s+download|gsutil\s+cp)\s+http[s]?://\S+.*\s+&&\s+(\S+)",
             "technique": "T1059",
             "sub_technique": ".009"
@@ -826,42 +252,6 @@ RULES = [
             "sub_technique": ".010"
         },
         {
-            "id": "autohotkey_run_script",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*\S+\.ahk",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_run_script",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*\S+\.au3",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autohotkey_download",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*http[s]?://\S+",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_download",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*http[s]?://\S+",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autohotkey_chain_command",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*\S+\.ahk.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_chain_command",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*\S+\.au3.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
             "id": "autohotkey_base64_decode",
             "pattern": r"AutoHotkey(?:\.exe)?\s+.*base64decode\s*\(\s*['\"][A-Za-z0-9+/=]{20,}['\"]\s*\)",
             "technique": "T1059",
@@ -870,18 +260,6 @@ RULES = [
         {
             "id": "autoit_base64_decode",
             "pattern": r"AutoIt3(?:\.exe)?\s+.*Base64Decode\s*\(\s*['\"][A-Za-z0-9+/=]{20,}['\"]\s*\)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autohotkey_download_base64_decode",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*http[s]?://\S+.*base64decode\s*\(\s*['\"][A-Za-z0-9+/=]{20,}['\"]\s*\)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_download_base64_decode",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*http[s]?://\S+.*Base64Decode\s*\(\s*['\"][A-Za-z0-9+/=]{20,}['\"]\s*\)",
             "technique": "T1059",
             "sub_technique": ".010"
         },
@@ -897,83 +275,11 @@ RULES = [
             "technique": "T1059",
             "sub_technique": ".010"
         },
-        {
-            "id": "autohotkey_base64_decode_chain",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*base64decode\s*\(\s*['\"][A-Za-z0-9+/=]{20,}['\"]\s*\).*&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_base64_decode_chain",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*Base64Decode\s*\(\s*['\"][A-Za-z0-9+/=]{20,}['\"]\s*\).*&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autohotkey_encoded_command_chain",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_encoded_command_chain",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autohotkey_chain_multiple_commands",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*\S+\.ahk.*\s+&&\s+(\S+).*&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_chain_multiple_commands",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*\S+\.au3.*\s+&&\s+(\S+).*&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autohotkey_encoded_command_multiple_chain",
-            "pattern": r"AutoHotkey(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+).*&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
-        {
-            "id": "autoit_encoded_command_multiple_chain",
-            "pattern": r"AutoIt3(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+).*&&\s+(\S+)",
-            "technique": "T1059",
-            "sub_technique": ".010"
-        },
 
             # Design a few GENERAL patterns for spotting Lua suspicious code execution using command patterns for technique T1059.011:
         {
-            "id": "lua_oneliner_download",
-            "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*-e\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".011"
-        },
-        {
             "id": "lua_loadstring_url",
             "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*loadstring\s*\(.*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".011"
-        },
-        {
-            "id": "lua_require_socket_url",
-            "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*require\s*\(\s*['\"]socket['\"]\s*\).*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".011"
-        },
-        {
-            "id": "lua_os_execute_curl",
-            "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*os\.execute\s*\(\s*['\"]curl\s+-O\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".011"
-        },
-        {
-            "id": "lua_os_execute_wget",
-            "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*os\.execute\s*\(\s*['\"]wget\s+http[s]?://",
             "technique": "T1059",
             "sub_technique": ".011"
         },
@@ -990,56 +296,14 @@ RULES = [
             "sub_technique": ".011"
         },
         {
-            "id": "lua_io_popen_curl",
-            "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*io\.popen\s*\(\s*['\"]curl\s+-O\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".011"
-        },
-        {
-            "id": "lua_io_popen_wget",
-            "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*io\.popen\s*\(\s*['\"]wget\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".011"
-        },
-        {
             "id": "lua_download_and_execute",
             "pattern": r"(?:lua|luajit)(?:\.exe)?\s+.*-e\s+['\"][^'\"]*http[s]?://.*\s+&&\s+(\S+)",
             "technique": "T1059",
             "sub_technique": ".011"
         },
         {
-            "id": "hypervisor_cli_url_download",
-            "pattern": r"(?:virsh|VBoxManage|qm|xe|govc)(?:\.exe)?\s+.*-c\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "hypervisor_cli_requests_download",
-            "pattern": r"(?:virsh|VBoxManage|qm|xe|govc)(?:\.exe)?\s+.*import\s+requests;?\s*requests\.get\(['\"]http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
             "id": "hypervisor_cli_base64_exec",
             "pattern": r"(?:virsh|VBoxManage|qm|xe|govc)(?:\.exe)?\s+.*exec\s*\(.*base64\.b64decode\(['\"][A-Za-z0-9+/=]{20,}['\"]\).*\)",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "hypervisor_cli_system_curl",
-            "pattern": r"(?:virsh|VBoxManage|qm|xe|govc)(?:\.exe)?\s+.*system\s*\(\s*['\"]curl\s+-O\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "hypervisor_cli_subprocess_wget",
-            "pattern": r"(?:virsh|VBoxManage|qm|xe|govc)(?:\.exe)?\s+.*subprocess\s*\(\s*['\"]wget\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "hypervisor_cli_nested_download",
-            "pattern": r"(?:virsh|VBoxManage|qm|xe|govc)(?:\.exe)?\s+.*import\s+os;?\s*os\.system\s*\(\s*['\"](virsh|VBoxManage|qm|xe|govc)\s+-c\s+['\"][^'\"]*http[s]?://",
             "technique": "T1059",
             "sub_technique": ".012"
         },
@@ -1050,38 +314,8 @@ RULES = [
             "sub_technique": ".012"
         },
         {
-            "id": "container_cli_url_download",
-            "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*-c\s+['\"][^'\"]*http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "container_cli_requests_download",
-            "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*import\s+requests;?\s*requests\.get\(['\"]http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
             "id": "container_cli_base64_exec",
             "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*exec\s*\(.*base64\.b64decode\(['\"][A-Za-z0-9+/=]{20,}['\"]\).*\)",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "container_cli_system_curl",
-            "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*system\s*\(\s*['\"]curl\s+-O\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "container_cli_subprocess_wget",
-            "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*subprocess\s*\(\s*['\"]wget\s+http[s]?://",
-            "technique": "T1059",
-            "sub_technique": ".012"
-        },
-        {
-            "id": "container_cli_nested_download",
-            "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*import\s+os;?\s*os\.system\s*\(\s*['\"](docker|kubectl|podman|crictl)\s+-c\s+['\"][^'\"]*http[s]?://",
             "technique": "T1059",
             "sub_technique": ".012"
         },
@@ -1090,5 +324,411 @@ RULES = [
             "pattern": r"(?:docker|kubectl|podman|crictl)(?:\.exe)?\s+.*-c\s+['\"][^'\"]*http[s]?://.*\s+&&\s+exec\(response\.read\(\)\)",
             "technique": "T1059",
             "sub_technique": ".012"
-        } 
+        },
+
+        # --------------------------------------------------------------
+        # List of T1218 sub-technique IDs with associated regex patterns 
+        # --------------------------------------------------------------
+
+        # System Binary Proxy Execution (T1218) - Mshta
+        {
+            "id": "mshta_proxy",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b",
+            "technique": "T1218",
+            "sub_technique": ".005"
+        },
+
+        # Design a few CRITICAL patterns for spotting Compiled HTML File as suspicious code execution using command patterns for technique T1218.001:
+        {
+            "id": "mshta_remote_hta_url",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+https?://[^\s]+\.hta\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_remote_js_url",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+https?://[^\s]+\.js\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_remote_html_like_url",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+https?://[^\s]+\.(?:html?|php|asp|jsp)\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_local_suspicious_hta",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+.*\\(?:users|temp|appdata|downloads|public)\\[^\s]+\.hta\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "hta_application_marker",
+            "pattern": r"(?i)<hta:application>",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_script_protocol_obfuscated",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+['\"]?(?:javascript|vbscript):.*\b(eval\(|atob\(|fromcharcode\(|string\.fromcharcode\(|unescape\(|chr\(|execute\()\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_script_protocol_activex",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+['\"]?(?:javascript|vbscript):.*\b(activexobject|xmlhttp|adodb\.stream)\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_chain_to_shell",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b[^&|]*(&&|\|)[^&|]*\b(cmd\.exe|powershell\.exe|wscript\.exe|rundll32\.exe)\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "mshta_shell_chain_to_mshta",
+            "pattern": r"(?i)\b(cmd\.exe|powershell\.exe|wscript\.exe|rundll32\.exe)\b[^&|]*(&&|\|)[^&|]*\bmshta(?:\.exe)?\b",
+            "technique": "T1218",
+            "sub_technique": ".001"
+        },
+
+        # Design a few CRITICAL patterns for spotting control.exe to proxy execution under technique T1218.002:
+        {
+            "id": "control_panel_cpl_file",
+            "pattern": r"(?i)\bcontrol(?:\.exe)?\b\s+.*\.cpl\b",
+            "technique": "T1218",
+            "sub_technique": ".002"
+        },
+        {
+            "id": "suspicious_path_cpl",
+            "pattern": r"(?i)\bcontrol(?:\.exe)?\b\s+.*(users|programdata|temp|appdata|\\).+\.cpl\b",
+            "technique": "T1218",
+            "sub_technique": ".002"
+        },
+        {
+            "id": "control_runDLL_invokation",
+            "pattern": r"(?i)\bcontrol(?:\.exe)?\b\s+shell32\.dll,Control_RunDLL\b",
+            "technique": "T1218",
+            "sub_technique": ".002"
+        },
+        {
+            "id": "control_panel_chain_command",
+            "pattern": r"(?i)\bcontrol(?:\.exe)?\b[^&|]*(&&|\|)[^&|]*",
+            "technique": "T1218",
+            "sub_technique": ".002"
+        },
+
+        # Design a few CRITICAL patterns for spotting CMSTP under technique T1218.003:
+
+        {
+            "id": "cmstp_inf_execution",
+            "pattern": r"(?i)\bcmstp(?:\.exe)?\b\s+.*\.inf\b",
+            "technique": "T1218",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "cmstp_silent_install",
+            "pattern": r"(?i)\bcmstp(?:\.exe)?\b\s+.*\b/(s|au)\b",
+            "technique": "T1218",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "cmstp_suspicious_path",
+            "pattern": r"(?i)\bcmstp(?:\.exe)?\b\s+.*(users|programdata|temp|appdata|\\\\).+\.inf\b",
+            "technique": "T1218",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "cmstp_chain_operator",
+            "pattern": r"(?i)\bcmstp(?:\.exe)?\b[^&|]*(&&|\|)[^&|]*",
+            "technique": "T1218",
+            "sub_technique": ".003"
+        },
+
+        # Design a few CRITICAL patterns for spotting InstallUtil abuse under technique T1218.004:
+        {
+            "id": "installutil_uninstall_user_path",
+            "pattern": r"(?i)\binstallutil(?:\.exe)?\b\s+/u\s+.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.(?:dll|exe)\b",
+            "technique": "T1218",
+            "sub_technique": ".004"
+        },
+        {
+            "id": "installutil_log_suppression_user_path",
+            "pattern": r"(?i)\binstallutil(?:\.exe)?\b\s+.*(?:/logfile=|/logtoconsole=false).*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.(?:dll|exe)\b",
+            "technique": "T1218",
+            "sub_technique": ".004"
+        },
+
+        # Design a few CRITICAL patterns for spotting Mshta abuse under technique T1218.005:
+        {
+            "id": "mshta_getobject_scriptlet",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+(?:javascript|vbscript):.*getobject\(\s*\"?script:https?://",
+            "technique": "T1218",
+            "sub_technique": ".005"
+        },
+        {
+            "id": "mshta_inline_execute_chain",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+(?:javascript|vbscript):.*\bexecute\(.*\)\b",
+            "technique": "T1218",
+            "sub_technique": ".005"
+        },
+
+        # Design a few CRITICAL patterns for spotting Msiexec abuse under technique T1218.007:
+        {
+            "id": "msiexec_remote_msi",
+            "pattern": r"(?i)\bmsiexec(?:\.exe)?\b\s+/i\s+https?://[^\s]+\.msi\b",
+            "technique": "T1218",
+            "sub_technique": ".007"
+        },
+        {
+            "id": "msiexec_unc_msi",
+            "pattern": r"(?i)\bmsiexec(?:\.exe)?\b\s+/i\s+\\\\[^\s]+\.msi\b",
+            "technique": "T1218",
+            "sub_technique": ".007"
+        },
+
+        # Design a few CRITICAL patterns for spotting Odbcconf abuse under technique T1218.008:
+        {
+            "id": "odbcconf_regsvr_user_path",
+            "pattern": r"(?i)\bodbcconf(?:\.exe)?\b\s+/s\s+/a\s+\{regsvr\s+\"?.*\\(?:users|temp|appdata|programdata|public)\\[^\"\s]+\.dll\"?\}",
+            "technique": "T1218",
+            "sub_technique": ".008"
+        },
+
+        # Design a few CRITICAL patterns for spotting Regsvcs/Regasm abuse under technique T1218.009:
+        {
+            "id": "regsvcs_codebase_user_path",
+            "pattern": r"(?i)\bregsvcs(?:\.exe)?\b\s+/(?:codebase|u)\s+.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.(?:dll|exe)\b",
+            "technique": "T1218",
+            "sub_technique": ".009"
+        },
+        {
+            "id": "regasm_codebase_user_path",
+            "pattern": r"(?i)\bregasm(?:\.exe)?\b\s+/(?:codebase|u)\s+.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.(?:dll|exe)\b",
+            "technique": "T1218",
+            "sub_technique": ".009"
+        },
+
+        # Design a few CRITICAL patterns for spotting Regsvr32 abuse under technique T1218.010:
+        {
+            "id": "regsvr32_remote_sct",
+            "pattern": r"(?i)\bregsvr32(?:\.exe)?\b\s+/s\s+/n\s+/u\s+/i:https?://[^\s]+\.sct\b\s+scrobj\.dll\b",
+            "technique": "T1218",
+            "sub_technique": ".010"
+        },
+        {
+            "id": "regsvr32_local_sct_user_path",
+            "pattern": r"(?i)\bregsvr32(?:\.exe)?\b\s+/s\s+/n\s+/u\s+/i:.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.sct\b\s+scrobj\.dll\b",
+            "technique": "T1218",
+            "sub_technique": ".010"
+        },
+
+        # Design a few CRITICAL patterns for spotting Rundll32 abuse under technique T1218.011:
+        {
+            "id": "rundll32_mshtml_runhtmlapplication",
+            "pattern": r"(?i)\brundll32(?:\.exe)?\b\s+javascript:.*mshtml,runhtmlapplication",
+            "technique": "T1218",
+            "sub_technique": ".011"
+        },
+        {
+            "id": "rundll32_user_dll_export",
+            "pattern": r"(?i)\brundll32(?:\.exe)?\b\s+.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.dll\s*,\s*[^\s,]+",
+            "technique": "T1218",
+            "sub_technique": ".011"
+        },
+        {
+            "id": "rundll32_dll_ordinal",
+            "pattern": r"(?i)\brundll32(?:\.exe)?\b\s+[^\s]+\.dll\s*,\s*#\d+",
+            "technique": "T1218",
+            "sub_technique": ".011"
+        },
+
+        # Design a few CRITICAL patterns for spotting Verclsid abuse under technique T1218.012:
+        {
+            "id": "verclsid_clsid_execute",
+            "pattern": r"(?i)\bverclsid(?:\.exe)?\b\s+/s\s+/c\s+\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}",
+            "technique": "T1218",
+            "sub_technique": ".012"
+        },
+
+        # Design a few CRITICAL patterns for spotting Mavinject abuse under technique T1218.013:
+        {
+            "id": "mavinject_injectrunning",
+            "pattern": r"(?i)\bmavinject(?:\.exe)?\b\s+\d+\s+/injectrunning\s+[^\s]+\.dll\b",
+            "technique": "T1218",
+            "sub_technique": ".013"
+        },
+        {
+            "id": "mavinject_hmodule_inject",
+            "pattern": r"(?i)\bmavinject(?:\.exe)?\b\s+\d+\s+/hmodule=0x[0-9a-f]+\s+[^\s]+\.dll\b",
+            "technique": "T1218",
+            "sub_technique": ".013"
+        },
+
+        # Design a few CRITICAL patterns for spotting MMC abuse under technique T1218.014:
+        {
+            "id": "mmc_embedding_user_msc",
+            "pattern": r"(?i)\bmmc(?:\.exe)?\b\s+-embedding\s+.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.msc\b",
+            "technique": "T1218",
+            "sub_technique": ".014"
+        },
+        {
+            "id": "mmc_author_mode_user_msc",
+            "pattern": r"(?i)\bmmc(?:\.exe)?\b\s+.*\\(?:users|temp|appdata|programdata|public)\\[^\s]+\.msc\b\s+/a\b",
+            "technique": "T1218",
+            "sub_technique": ".014"
+        },
+
+        # Design a few CRITICAL patterns for spotting Electron app abuse under technique T1218.015:
+        {
+            "id": "electron_gpu_launcher_shell",
+            "pattern": r"(?i)\b(?:chrome|teams|slack|discord|signal|electron|code)(?:\.exe)?\b.*--gpu-launcher=\"?[^\"]*(?:cmd\.exe|powershell\.exe|/bin/(?:sh|bash|zsh))",
+            "technique": "T1218",
+            "sub_technique": ".015"
+        },
+
+        # --------------------------------------------------------------
+        # List of T1027 sub-technique IDs with associated regex patterns 
+        # --------------------------------------------------------------
+
+        {
+            "id": "js_string_concat_obfuscation",
+            "pattern": r"(?i)javascript:.*'[^']+'\s*\+\s*'[^']+'",
+            "technique": "T1027",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "binary_padding_dd_append",
+            "pattern": r"(?i)\bdd\b.*\bif=/dev/zero\b.*\bof=\S+\.(?:exe|dll|bin|elf|so|dylib)\b.*\bseek=\d+\b.*\bconv=notrunc\b",
+            "technique": "T1027",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "software_packing_tools",
+            "pattern": r"(?i)\b(upx|mpress|aspack|themida|vmprotect|obsidium)\b.*\.(?:exe|dll|elf|so|dylib|bin)\b",
+            "technique": "T1027",
+            "sub_technique": ".002"
+        },
+        {
+            "id": "steganography_steghide_embed_extract",
+            "pattern": r"(?i)\bsteghide\b\s+(?:embed|extract)\b.*\.(?:png|jpe?g|bmp|gif|wav)\b",
+            "technique": "T1027",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "steganography_invoke_psimage",
+            "pattern": r"(?i)\b(?:powershell|pwsh)(?:\.exe)?\b.*\bInvoke-PSImage\b",
+            "technique": "T1027",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "compile_after_delivery_dotnet",
+            "pattern": r"(?i)\b(?:csc|ilasm|msbuild)(?:\.exe)?\b.*\\(?:users|temp|appdata|downloads)\\[^\s]+\.(?:cs|vb|txt)\b",
+            "technique": "T1027",
+            "sub_technique": ".004"
+        },
+        {
+            "id": "compile_after_delivery_gcc_tmp",
+            "pattern": r"(?i)\b(?:gcc|g\+\+|clang)\b.*\s(?:/tmp|/var/tmp|/home/[^/]+/Downloads)/[^\s]+\.(?:c|cc|cpp)\b.*\s-o\s+\S+",
+            "technique": "T1027",
+            "sub_technique": ".004"
+        },
+        {
+            "id": "indicator_removal_find_avsignature",
+            "pattern": r"(?i)\bFind-AVSignature\b",
+            "technique": "T1027",
+            "sub_technique": ".005"
+        },
+        {
+            "id": "html_smuggling_data_url",
+            "pattern": r"(?i)data:application/(?:octet-stream|zip|x-msdownload|x-msi);base64,",
+            "technique": "T1027",
+            "sub_technique": ".006"
+        },
+        {
+            "id": "html_smuggling_blob_download",
+            "pattern": r"(?i)\b(?:Blob|msSaveOrOpenBlob|msSaveBlob|URL\.createObjectURL)\b.*\bdownload=",
+            "technique": "T1027",
+            "sub_technique": ".006"
+        },
+        {
+            "id": "dynamic_api_resolution_winapi",
+            "pattern": r"(?i)\b(GetProcAddress|LdrGetProcedureAddress)\b.*\b(LoadLibrary|LdrLoadDll)\b",
+            "technique": "T1027",
+            "sub_technique": ".007"
+        },
+        {
+            "id": "stripped_payloads_strip_tool",
+            "pattern": r"(?i)\b(?:strip|llvm-strip)\b.*\b(--strip-all|--strip-unneeded|-s)\b.*\.(?:elf|so|bin|exe|dylib)\b",
+            "technique": "T1027",
+            "sub_technique": ".008"
+        },
+        {
+            "id": "embedded_payload_base64_pe_header",
+            "pattern": r"(?i)TVqQAAMAAAAEAAAA",
+            "technique": "T1027",
+            "sub_technique": ".009"
+        },
+        {
+            "id": "command_obfuscation_tools",
+            "pattern": r"(?i)\b(Invoke-Obfuscation|Invoke-DOSfuscation|bashfuscator)\b",
+            "technique": "T1027",
+            "sub_technique": ".010"
+        },
+        {
+            "id": "fileless_storage_registry_blob",
+            "pattern": r"(?i)\breg(?:\.exe)?\b\s+add\b.*\\(?:Software|Classes|Microsoft\\Windows\\CurrentVersion)\\[^\s]+\s+/t\s+REG_(?:BINARY|SZ)\s+/d\s+[A-Fa-f0-9]{100,}",
+            "technique": "T1027",
+            "sub_technique": ".011"
+        },
+        {
+            "id": "fileless_storage_dev_shm_exec",
+            "pattern": r"(?i)\b(?:chmod\s+\+x\s+/(?:dev|run)/shm/[^\s]+|/(?:dev|run)/shm/[^\s]+\b)",
+            "technique": "T1027",
+            "sub_technique": ".011"
+        },
+        {
+            "id": "lnk_icon_smuggling_url",
+            "pattern": r"(?i)\.lnk\b.*\b(IconLocation|IconEnvironmentDataBlock)\b.*(https?://|\\\\[^\\\s]+\\)",
+            "technique": "T1027",
+            "sub_technique": ".012"
+        },
+        {
+            "id": "encrypted_file_openssl_enc",
+            "pattern": r"(?i)\bopenssl\b\s+enc\s+-aes-(?:128|192|256)-(?:cbc|gcm)\b.*\b-in\b\s+\S+\s+\b-out\b\s+\S+",
+            "technique": "T1027",
+            "sub_technique": ".013"
+        },
+        {
+            "id": "encrypted_file_gpg_symmetric",
+            "pattern": r"(?i)\bgpg\b\s+(?:-c|--symmetric)\b.*\b\S+\.(?:txt|docx|xlsx|pdf|zip|7z|rar|exe|dll)\b",
+            "technique": "T1027",
+            "sub_technique": ".013"
+        },
+        {
+            "id": "polymorphic_code_msfvenom_encoder",
+            "pattern": r"(?i)\bmsfvenom\b.*\s-e\s+\S+",
+            "technique": "T1027",
+            "sub_technique": ".014"
+        },
+        {
+            "id": "compression_archive_with_executables",
+            "pattern": r"(?i)\b(?:7z|rar|winrar|zip)\b\s+a\b.*\.(?:zip|7z|rar)\b.*\.(?:exe|dll|js|vbs|ps1|bat|cmd|msi|scr)\b",
+            "technique": "T1027",
+            "sub_technique": ".015"
+        },
+        {
+            "id": "junk_code_insertion_js_obfuscator",
+            "pattern": r"(?i)\bjavascript-obfuscator\b.*\b--deadCodeInjection\b",
+            "technique": "T1027",
+            "sub_technique": ".016"
+        },
+        {
+            "id": "svg_smuggling_script_payload",
+            "pattern": r"(?i)<svg[^>]*>.*<script[^>]*>.*(?:atob\(|data:application/|Blob\()",
+            "technique": "T1027",
+            "sub_technique": ".017"
+        },
     ]

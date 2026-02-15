@@ -40,6 +40,10 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
   * relevant telemetry sources
 * Produce **structured JSON output** suitable for automation or analysis
 
+Current technique coverage:
+- **Primary**: T1059 (Command and Scripting Interpreter)
+- **Secondary (optional)**: T1218 (System Binary Proxy Execution), T1027 (Obfuscated Files or Information)
+
 ---
 
 ## High-Level Architecture
@@ -138,8 +142,8 @@ Note: the CLI accepts multi-part commands (it joins all remaining args), so comp
 
 ### Include secondary techniques
 
-By default, the CLI emits only T1059 detections. To include additional
-techniques used for chain context (for example T1027, T1218), pass:
+By default, the CLI emits T1059 detections. To include all additional
+techniques currently implemented in the ruleset (for example T1218, T1027), pass:
 
 ```bash
 py -m odt.cli.main "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\"" --include-secondary-techniques

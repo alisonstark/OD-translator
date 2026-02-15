@@ -1,4 +1,16 @@
-# Changes Summary (T1059 Minimal Pipeline + attackcti)
+# Changes Summary (Multi-technique Pipeline + attackcti)
+
+Date: 2026-02-14
+
+## Multi-Technique Expansion
+- **Secondary technique coverage**: `--include-secondary-techniques` now adds all non-primary techniques present in the rule set (currently T1218 and T1027, and any future additions).
+- **Unified detection flow**: Refactored detectors to share a generic technique pipeline with technique-specific hooks (scope filtering, evidence handling, mshta suppression).
+- **Sub-technique naming**: T1027 and T1218 now emit sub-technique IDs/names when available.
+
+## MITRE Cache Improvements
+- **Unified cache**: Replaced the T1059-only cache with a single cache that includes all techniques/sub-techniques.
+- **Lazy warm-up**: Cache is warmed only when secondary techniques are requested.
+- **Legacy migration**: Existing T1059 cache is migrated into the unified cache format.
 
 Date: 2026-02-13
 
