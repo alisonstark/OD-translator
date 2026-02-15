@@ -76,7 +76,7 @@ def score_confidence(base_confidence: float, evidence: List[str]) -> float:
         - 0.04 * generic_penalty
     )
 
-    return max(0.0, min(1.0, score))
+    return round(max(0.0, min(1.0, score)), 2)
 
 
 def _match_indicators(command_lower: str, indicators: List[str]) -> List[str]:

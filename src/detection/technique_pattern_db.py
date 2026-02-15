@@ -131,6 +131,18 @@ RULES = [
             "sub_technique": ".003"
         },
         {
+            "id": "cmd_pipe_to_cmd",
+            "pattern": r"\bcmd(?:\.exe)?\b\s+/c\s+.*\|\s*cmd(?:\.exe)?\b",
+            "technique": "T1059",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "cmd_nslookup_findstr_forf_pipe_cmd",
+            "pattern": r"\bcmd(?:\.exe)?\b\s+/c\s+.*\bnslookup\b.*\|\s*findstr\s+\^?\"\^?Name:\".*\|\s*for\s+/f\b.*\|\s*cmd(?:\.exe)?\b",
+            "technique": "T1059",
+            "sub_technique": ".003"
+        },
+        {
             "id": "bash_base64_decode",
             "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+base64\s+-d\s+['\"][A-Za-z0-9+/=]{20,}['\"]\s*\|\s*bash", 
             "technique": "T1059",
