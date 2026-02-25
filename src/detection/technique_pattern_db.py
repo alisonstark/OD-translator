@@ -143,6 +143,18 @@ RULES = [
             "sub_technique": ".003"
         },
         {
+            "id": "wscript_shell_run_cmd_indirect",
+            "pattern": r"(?i)wscript\.shell.*run\s*\(\s*['\"]cmd(?:\.exe)?",
+            "technique": "T1059",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "mshta_wscript_shell_run_cmd",
+            "pattern": r"(?i)mshta.*wscript\.shell.*run\s*\(\s*['\"]cmd(?:\.exe)?",
+            "technique": "T1059",
+            "sub_technique": ".003"
+        },
+        {
             "id": "bash_base64_decode",
             "pattern": r"/bin/(bash|sh|zsh|ksh|dash)(?:\.exe)?\s+-c\s+base64\s+-d\s+['\"][A-Za-z0-9+/=]{20,}['\"]\s*\|\s*bash", 
             "technique": "T1059",
@@ -207,6 +219,18 @@ RULES = [
             "pattern": r"(?:cscript|wscript)(?:\.exe)?\s+.*-e\s+[A-Za-z0-9+/=]{20,}.*\s+&&\s+(\S+\.js)", 
             "technique": "T1059",
             "sub_technique": ".007"
+        },
+        {
+            "id": "mshta_javascript_execution",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+['\"]?javascript:[^'\"]*",
+            "technique": "T1059",
+            "sub_technique": ".007"
+        },
+        {
+            "id": "mshta_vbscript_execution",
+            "pattern": r"(?i)\bmshta(?:\.exe)?\b\s+['\"]?vbscript:[^'\"]*",
+            "technique": "T1059",
+            "sub_technique": ".005"
         },
         
         # Design a few high confidence general patterns for Network Device CLI suspicious code execution using command patterns for technique T1059.008:

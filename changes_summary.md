@@ -1,43 +1,5 @@
 # Changes Summary (Multi-technique Pipeline + attackcti)
 
-Date: 2026-02-24 (continued)
-
-## CLI Enhancements
-- **Short Flag for Decode**: Added `-d` as short option for `--decode` flag (previously only `--decode` was available)
-
-## Expanded Unit Testing
-- **detect_t1059() Tests**: Added 10 comprehensive tests for T1059 detection function:
-  - T1059.007 JavaScript detection (mshta context)
-  - T1059.005 VBScript detection (mshta context)
-  - Detection in suspicious command contexts
-  - Evidence extraction and accumulation
-  - Confidence scoring progression
-  - Output structure validation
-  - Pattern suppression logic verification
-  - No false positives on benign commands
-- **Total Test Count**: Expanded from 49 to 59 tests
-- **test_detector.py**: Now tests both `score_confidence()` (14 tests) and `detect_t1059()` (10 tests)
-
-## Obfuscation Handling & Unit Testing
-- **Decoder Module**: Created `src/core/decoder.py` to detect and decode common obfuscation techniques:
-  - PowerShell base64 (`-encodedCommand`)
-  - JavaScript atob() base64 encoding
-  - JavaScript/VBScript String.fromCharCode() / chr() char code arrays
-  - URL encoding (%XX)
-  - Unicode escapes (\uXXXX)
-  - Hex encoding (0xXX)
-- **Hybrid Approach**: Decoder detects obfuscation patterns (for T1027 mapping) and optionally decodes (for improved T1059 detection)
-- **CLI Integration**: Added `--decode` flag to enable optional decoding before detection
-- **Pipeline Integration**: Integrated decoder into `pipeline.py` with `decode_info` output when decoding occurs
-- **Sample Commands**: Added 5 heavily obfuscated sample commands to `sample_commands.md` for testing
-- **Comprehensive Unit Tests**: Created 49 unit tests across 3 test files:
-  - `tests/test_parser.py` (10 tests): command normalization, whitespace handling, edge cases
-  - `tests/test_detector.py` (14 tests): confidence scoring, evidence-based adjustments, bonuses/penalties
-  - `tests/test_decoder.py` (25 tests): encoding detection, individual decoders, multi-layer decoding
-- **Test Infrastructure**: Added simple built-in test runner with no dependencies, clear pass/fail output
-- **Documentation**: Created `tests/README.md` with usage guide and test coverage details
-- **README Update**: Added "Development & Testing" section to main README with test running instructions
-
 Date: 2026-02-24
 
 ## Pattern Coverage Improvements & Output Enhancements

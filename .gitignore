@@ -1,6 +1,26 @@
+# Python virtual environments
 venv/
+env/
+ENV/
+.venv/
+
+# Python cache and compiled files
 __pycache__/
 **/__pycache__/
 *.pyc
+*.pyo
 *.egg-info/
+*.egg
+dist/
+build/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Project-specific
 TODO.md
+data/results/

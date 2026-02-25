@@ -1,12 +1,63 @@
-mindmap
-  root((OD-translator: main flow))
-    Data In
-      ingest_command (planned)
-      cli_entry main
-    Processing
-      translate_command
-        normalize_command
-        detect_t1059
-    Data Out
-      build_output
-      emit_output (planned)
+flowchart TD
+    Start([CLI Entry: main.py]) --> ArgParse[Parse Arguments<br/>--decode, --output<br/>--refresh-mitre<br/>--include-secondary-techniques]
+    ArgParse --> ReadInput{Input Source?}
+    ReadInput -->|Arguments| JoinArgs[Join command args]
+    ReadInput -->|stdin| ReadStdin[Read from stdin]
+    JoinArgs --> Pipeline
+    ReadStdin --> Pipeline
+    
+    Pipeline[translate_command<br/>pipeline.py] --> DecodeCheck{--decode flag?}
+    
+    DecodeCheck -->|Yes| DetectEnc[detect_encoding_types<br/>decoder.py]
+    DetectEnc --> DecodeCmd[decode_command<br/>decoder.py]
+    DecodeCmd --> DecodeResult{Decoded?}
+    DecodeResult -->|Yes| UseDecoded[Use decoded command<br/>Store decode_info]
+    DecodeResult -->|No| UseOriginal1[Use original command]
+    DecodeCheck -->|No| UseOriginal2[Use original command]
+    
+    UseDecoded --> Normalize
+    UseOriginal1 --> Normalize
+    UseOriginal2 --> Normalize
+    
+    Normalize[normalize_command<br/>parser.py] --> DetectPrimary[detect_t1059<br/>detector.py]
+    
+    DetectPrimary --> MatchIndicators1[_match_indicators<br/>evidences from INDICATOR_DB]
+    MatchIndicators1 --> ScoreConf1[score_confidence<br/>evidence-based scoring]
+    ScoreConf1 --> SecCheck{include_secondary<br/>techniques?}
+    
+    SecCheck -->|Yes| GetCache[get_attackcti_cache<br/>mitre.py]
+    GetCache --> DetectSec[detect_secondary_techniques<br/>detector.py]
+    DetectSec --> DetectT1218[detect_t1218<br/>LOLBins detection]
+    DetectT1218 --> MatchIndicators2[_match_indicators]
+    MatchIndicators2 --> ScoreConf2[score_confidence]
+    ScoreConf2 --> DetectT1027[detect_t1027<br/>Obfuscation detection]
+    DetectT1027 --> MatchIndicators3[_match_indicators]
+    MatchIndicators3 --> ScoreConf3[score_confidence]
+    ScoreConf3 --> MergeDetections
+    
+    SecCheck -->|No| MergeDetections[Merge all detections]
+    
+    MergeDetections --> BuildOutput[build_output<br/>output.py]
+    BuildOutput --> EnrichDet[_enrich_detections<br/>Add metadata from METADATA_DB]
+    EnrichDet --> DedupeEv[_dedupe_evidence]
+    DedupeEv --> AddDecodeInfo{decode_info<br/>available?}
+    
+    AddDecodeInfo -->|Yes| AddDecodeMeta[Add decode_info to output]
+    AddDecodeInfo -->|No| FinalOutput
+    AddDecodeMeta --> FinalOutput
+    
+    FinalOutput[Final JSON Output] --> OutputCheck{--output flag?}
+    OutputCheck -->|Yes| SaveFile[Save to data/results/<br/>with timestamp]
+    OutputCheck -->|No| PrintStdout[Print to stdout]
+    
+    SaveFile --> End([End])
+    PrintStdout --> End
+    
+    style Start fill:#e1f5e1
+    style End fill:#ffe1e1
+    style Pipeline fill:#e1e5ff
+    style Normalize fill:#fff4e1
+    style DetectPrimary fill:#ffe1f5
+    style DetectSec fill:#ffe1f5
+    style BuildOutput fill:#e1f5ff
+    style FinalOutput fill:#f5e1ff

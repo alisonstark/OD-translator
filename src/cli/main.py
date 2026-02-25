@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 # Ensure the src directory is in the Python path for imports when running this script directly, 
@@ -34,6 +35,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
 		action="store_true",
 		help="Include non-T1059 detections (e.g., T1027, T1218) in output.",
 	)
+	parser.add_argument(
+		"-o", "--output",
+		type=str,
+		help="Save output to JSON file in data/results/ directory. If omitted, print to stdout.",
+	)
+	parser.add_argument(
+		"-d", "--decode",
+		action="store_true",
+		help="Attempt to decode obfuscated commands (base64, fromCharCode, atob, URL encoding) before analysis.",
+	)
 	return parser
 
 
@@ -53,9 +64,30 @@ def main() -> int:
 		command,
 		refresh_mitre=args.refresh_mitre,
 		include_secondary_techniques=args.include_secondary_techniques,
+		decode=args.decode,
 	)
-	# Output the result as pretty-printed JSON for easy readability and further processing if needed.
-	print(json.dumps(result, indent=2))
+	
+	# Output result as JSON
+	json_output = json.dumps(result, indent=2)
+	
+	# If output file specified, save to data/results/ directory with timestamp
+	if args.output:
+		output_dir = Path(__file__).resolve().parent.parent.parent / "data" / "results"
+		output_dir.mkdir(parents=True, exist_ok=True)
+		
+		# Add timestamp to filename (before extension)
+		name, ext = args.output.rsplit(".", 1) if "." in args.output else (args.output, "json")
+		timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+		timestamped_filename = f"{name}_{timestamp}.{ext}"
+		
+		output_path = output_dir / timestamped_filename
+		with open(output_path, "w") as f:
+			f.write(json_output)
+		print(f"Results saved to: {output_path}")
+		return 0
+	
+	# Otherwise print to stdout
+	print(json_output)
 	return 0
 
 

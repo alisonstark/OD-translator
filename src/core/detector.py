@@ -227,7 +227,8 @@ def detect_t1059(command: str, refresh_mitre: bool = False) -> List[Dict[str, ob
         "mshta_chain_command",
         "mshta_command",
     }
-
+    # For T1059, we apply a specific rule filter to exclude certain rules based on the primary scope of the command (e.g., cmd.exe), 
+    # while allowing mshta-related rules to be included regardless of the primary scope.
     def rule_filter(rule: Dict[str, Any], metadata: Dict[str, Any], _: str) -> bool:
         rule_id = rule.get("id", "")
         rule_scope = metadata.get("rule_scope", "")

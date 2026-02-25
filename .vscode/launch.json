@@ -9,11 +9,11 @@
             "name": "ODT CLI (args)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/odt/cli/main.py",
+            "program": "${workspaceFolder}/src/cli/main.py",
             "console": "integratedTerminal",
             "redirectOutput": true,
             "args": [
-                "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
+                "mshta.exe javascript:var s=new ActiveXObject('WScript.Shell');s.Run('cmd.exe /c whoami',0)"
             ]
         }
     ]
