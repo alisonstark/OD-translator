@@ -33,7 +33,13 @@ flowchart TD
     ScoreConf2 --> DetectT1027[detect_t1027<br/>Obfuscation detection]
     DetectT1027 --> MatchIndicators3[_match_indicators]
     MatchIndicators3 --> ScoreConf3[score_confidence]
-    ScoreConf3 --> MergeDetections
+    ScoreConf3 --> DetectT1105[detect_t1105<br/>Ingress Tool Transfer]
+    DetectT1105 --> MatchIndicators4[_match_indicators]
+    MatchIndicators4 --> ScoreConf4[score_confidence]
+    ScoreConf4 --> DetectT1071[detect_t1071<br/>Application Layer Protocol]
+    DetectT1071 --> MatchIndicators5[_match_indicators]
+    MatchIndicators5 --> ScoreConf5[score_confidence]
+    ScoreConf5 --> MergeDetections
     
     SecCheck -->|No| MergeDetections[Merge all detections]
     

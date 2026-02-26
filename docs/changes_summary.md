@@ -1,5 +1,62 @@
 # Changes Summary (Multi-technique Pipeline + attackcti)
 
+Date: 2026-02-26
+
+## T1105 & T1071 Detection (Network-Based Techniques)
+- **T1105 (Ingress Tool Transfer)**: Added comprehensive detection for file/tool transfer patterns:
+  - PowerShell: `DownloadFile()`, `DownloadString()`, `Invoke-WebRequest()`, `Invoke-RestMethod()`
+  - LOLBins: `certutil -urlcache`, `bitsadmin /transfer`, `curl`, `wget`, `tftp`, `ftp -s:`
+  - ActiveX: `XMLHTTP`, `ActiveXObject('XMLHTTP')`, `WinHttp.WinHttpRequest`, `ServerXMLHTTP`
+  - Network utilities: `scp`, `rsync`
+  - **Total**: 16 critical patterns added to `technique_pattern_db.py`
+- **T1071 (Application Layer Protocol)**: Added detection for suspicious network communication:
+  - HTTP/HTTPS URLs in command lines
+  - Network objects: `WebClient`, `XMLHTTP`, `WinHttp.WinHttpRequest`
+  - PowerShell cmdlets: `Invoke-WebRequest`, `Invoke-RestMethod`
+  - Suspicious indicators: TLDs (`.tk`, `.ml`, `.xyz`), direct IP addresses, non-standard ports
+  - **Total**: 10 critical patterns added to `technique_pattern_db.py`
+- **Detector Functions**: Added `detect_t1105()` and `detect_t1071()` in `src/core/detector.py`
+- **Metadata Enrichment**: Added 16 metadata entries for T1105/T1071 patterns with:
+  - Detailed attacker intent and behavior descriptions
+  - SOC investigation notes and detection opportunities
+  - Telemetry sources (Sysmon Event IDs, PowerShell logs, network logs)
+  - Launcher/interpreter context
+- **Detection Accuracy**: 100% detection rate on realistic commands (5/5 each)
+- **Integration**: Both techniques available via `--include-secondary-techniques` flag
+- **Realistic Command Testing**: Updated `test_realistic_commands.py` to validate T1105/T1071 detection on network-based attacks
+- **Flowchart Update**: Updated `docs/odt_application_flowchart.mmd` to include T1105 and T1071 detection flow
+
+Date: 2026-02-25
+
+## Secondary Technique Detection Testing (T1218 & T1027)
+- **T1218 Unit Tests**: Added 8 comprehensive tests for System Binary Proxy Execution:
+  - mshta proxy execution detection (basic and advanced)
+  - ActiveX object usage patterns  
+  - rundll32 detection
+  - Evidence extraction and confidence scoring
+  - No false positives on benign commands
+  - Output structure validation
+  - Network-related proxy patterns
+  - Multiple pattern detection scenarios
+- **T1027 Unit Tests**: Added 7 comprehensive tests for Obfuscated Files or Information:
+  - T1027.002 (Software packing tools: upx, themida, mpress, aspack)
+  - T1027.003 (Steganography: steghide, Invoke-PSImage)
+  - String concatenation obfuscation patterns
+  - No false positives
+  - Evidence extraction and structure validation
+  - Confidence scoring with evidence
+- **Test Count Update**: Expanded from 59 to 74 unit tests
+- **Realistic Integration Tests**: Added 10 end-to-end integration tests using realistic "analyst headache" commands from `sample_commands.md`:
+  - Multi-technique attack chains (PowerShell → mshta → JavaScript → ActiveX)
+  - Various obfuscation levels (light, heavy, extreme)
+  - Remote code download and execution
+  - Multi-layer staging attacks
+  - **Detection Performance**: 100% accuracy (T1059: 10/10, T1218: 8/8, T1027: 7/7)
+- **Documentation Updates**: 
+  - Updated `tests/README.md` with comprehensive test coverage details
+  - Updated root `README.md` to reflect 84 total tests (74 unit + 10 integration)
+  - Added realistic test execution instructions
+
 Date: 2026-02-24 (continued)
 
 ## CLI Enhancements

@@ -767,4 +767,170 @@ RULES = [
             "technique": "T1027",
             "sub_technique": ".017"
         },
+
+        # --------------------------------------------------------------
+        # T1105 - Ingress Tool Transfer
+        # Critical patterns for detecting file/tool transfers from remote sources
+        # --------------------------------------------------------------
+        {
+            "id": "powershell_downloadfile",
+            "pattern": r"(?i)\b(?:WebClient|Net\.WebClient)\b.*\b(?:DownloadFile|DownloadData)\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "powershell_downloadstring",
+            "pattern": r"(?i)\b(?:WebClient|Net\.WebClient)\b.*\bDownloadString\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "powershell_invoke_webrequest_outfile",
+            "pattern": r"(?i)\bInvoke-WebRequest\b.*\b-OutFile\b",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "powershell_invoke_restmethod_download",
+            "pattern": r"(?i)\bInvoke-RestMethod\b.*https?://.*\b-OutFile\b",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "certutil_urlcache_download",
+            "pattern": r"(?i)\bcertutil(?:\.exe)?\b.*\b-urlcache\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "bitsadmin_transfer",
+            "pattern": r"(?i)\bbitsadmin(?:\.exe)?\b.*\b(?:/transfer|/addfile)\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "curl_download_output",
+            "pattern": r"(?i)\bcurl(?:\.exe)?\b.*(?:-o\b|-O\b|--output\b).*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "wget_download",
+            "pattern": r"(?i)\bwget(?:\.exe)?\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "xmlhttp_remote_fetch",
+            "pattern": r"(?i)\b(?:MSXML2\.)?XMLHTTP\b.*\b(?:open|send)\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "activex_xmlhttp_download",
+            "pattern": r"(?i)\bActiveXObject\b.*['\"](?:MSXML2\.)?XMLHTTP['\"].*\b(?:GET|POST)\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "winhttpcom_download",
+            "pattern": r"(?i)\bWinHttp\.WinHttpRequest\b.*\b(?:Open|Send)\b",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "serverxmlhttp_remote_request",
+            "pattern": r"(?i)\bServerXMLHTTP\b.*\b(?:open|send)\b.*https?://",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "tftp_download",
+            "pattern": r"(?i)\btftp(?:\.exe)?\b.*\b(?:-i|-get)\b",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "ftp_download_script",
+            "pattern": r"(?i)\bftp(?:\.exe)?\b.*\b-s:",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "scp_remote_copy",
+            "pattern": r"(?i)\bscp\b.*@.*:",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+        {
+            "id": "rsync_remote_download",
+            "pattern": r"(?i)\brsync\b.*(?:@|::)",
+            "technique": "T1105",
+            "sub_technique": ""
+        },
+
+        # --------------------------------------------------------------
+        # T1071 - Application Layer Protocol
+        # Critical patterns for detecting suspicious application layer network activity
+        # --------------------------------------------------------------
+        {
+            "id": "http_url_in_command",
+            "pattern": r"(?i)https?://[^\s'\">]+",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "webclient_network_object",
+            "pattern": r"(?i)\b(?:WebClient|Net\.WebClient|System\.Net\.WebClient)\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "xmlhttp_network_request",
+            "pattern": r"(?i)\b(?:MSXML2\.)?XMLHTTP\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "winhttp_request",
+            "pattern": r"(?i)\bWinHttp\.WinHttpRequest\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "invoke_webrequest",
+            "pattern": r"(?i)\b(?:Invoke-WebRequest|iwr)\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "invoke_restmethod",
+            "pattern": r"(?i)\b(?:Invoke-RestMethod|irm)\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "curl_web_request",
+            "pattern": r"(?i)\bcurl(?:\.exe)?\b.*https?://",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "suspicious_tld_in_url",
+            "pattern": r"(?i)https?://[^\s/]*\.(?:tk|ml|ga|cf|gq|xyz|top|work|live|site)\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "ip_address_url",
+            "pattern": r"https?://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "non_standard_port_url",
+            "pattern": r"(?i)https?://[^\s:]+:(?:8080|8443|8888|4444|443[0-9]|[1-9]\d{4})\b",
+            "technique": "T1071",
+            "sub_technique": ".001"
+        },
     ]

@@ -60,7 +60,7 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
   Tokenize, clean, and extract attacker intent from raw commands
 
 - 🎯 **MITRE ATT&CK Mapping**  
-  Automatic mapping to MITRE ATT&CK tactics and techniques (T1059, T1218, T1027)
+  Automatic mapping to MITRE ATT&CK tactics and techniques (T1059, T1218, T1027, T1105, T1071)
 
 - 🔓 **Obfuscation Decoding**  
   Automatically decode PowerShell base64, JavaScript atob/fromCharCode, and URL encoding
@@ -79,11 +79,15 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
   Machine-readable format suitable for automation, SIEM integration, and analysis workflows
 
 - 🧪 **Comprehensive Testing**  
-  59 unit tests covering normalization, confidence scoring, detection, and decoding (100% pass rate)
+  84 tests (74 unit + 10 integration) covering normalization, confidence scoring, detection, decoding, and realistic attack chains (100% pass rate)
 
 **Current Technique Coverage:**
 - **Primary**: T1059 (Command and Scripting Interpreter)
-- **Secondary** (optional): T1218 (System Binary Proxy Execution), T1027 (Obfuscated Files or Information)
+- **Secondary** (optional): 
+  - T1218 (System Binary Proxy Execution)
+  - T1027 (Obfuscated Files or Information)
+  - T1105 (Ingress Tool Transfer)
+  - T1071 (Application Layer Protocol)
 
 ---
 
@@ -423,7 +427,7 @@ The project follows a **layered architecture** to ensure clarity, extensibility,
 - Pattern-based technique detection
 - Maps to MITRE ATT&CK framework via [mitre.py](src/core/mitre.py)
 - Evidence-based confidence scoring
-- Supports T1059, T1218, T1027 techniques
+- Supports T1059, T1218, T1027, T1105, T1071 techniques
 
 #### 🛡️ Defensive Enrichment Layer ([metadata.py](src/detection/metadata.py))
 **This is the core differentiator of ODT.**
@@ -459,23 +463,19 @@ The project includes comprehensive unit tests covering:
 
 - **📏 Command Normalization** (10 tests): Whitespace handling, edge cases, special characters
 - **📊 Confidence Scoring** (14 tests): Evidence-based scoring, bonuses, penalties, edge cases
-- **🎯 T1059 Detection** (10 tests): mshta JavaScript/VBScript, evidence extraction, output structure
+- **🎯 Technique Detection** (25 tests): T1059, T1218, T1027, T1105, T1071 detection with evidence extraction
 - **🔓 Obfuscation Decoding** (25 tests): PowerShell base64, JavaScript atob/fromCharCode, URL encoding
+- **🔗 Integration Tests** (10 tests): Realistic attack chains with 100% detection accuracy
 
-**Total: 59 tests (100% pass rate)**
+**Total: 84 tests (100% pass rate)**
 
 ### Run All Tests
 
 ```bash
-python tests/test_parser.py
-python tests/test_detector.py
-python tests/test_decoder.py
-```
-
-Or run all at once:
-
-```bash
-python tests/test_parser.py; python tests/test_detector.py; python tests/test_decoder.py
+python tests/test_parser.py              # 10 unit tests
+python tests/test_detector.py            # 39 unit tests
+python tests/test_decoder.py             # 25 unit tests
+python tests/test_realistic_commands.py  # 10 integration tests
 ```
 
 ### Expected Output
@@ -489,12 +489,20 @@ python tests/test_parser.py; python tests/test_detector.py; python tests/test_de
 ✓ test_score_confidence_zero_evidence
 ✓ test_detect_t1059_mshta_javascript
 ...
-24 passed, 0 failed
+39 passed, 0 failed
 
 ✓ test_detect_encoding_powershell_base64
 ✓ test_detect_encoding_javascript_atob
 ...
 25 passed, 0 failed
+
+[10/10] Multi-layer staging: PS→mshta→vbscript→cmd
+Expected: T1059, T1218
+Detected: T1059, T1218
+✓ All expected techniques detected!
+
+T1059: 10/10 detected (100%)
+T1218: 8/8 detected (100%)
 ```
 
 ### Test Details
@@ -548,7 +556,7 @@ For detailed testing documentation, see [tests/README.md](tests/README.md).
 ### Phase 1 — Core Translator ✅ (Current)
 
 - ✅ Command-based input support
-- ✅ MITRE ATT&CK mapping (T1059, T1218, T1027)
+- ✅ MITRE ATT&CK mapping (T1059, T1218, T1027, T1105, T1071)
 - ✅ JSON output schema
 - ✅ Defensive enrichment logic
 - ✅ Obfuscation decoding

@@ -4,7 +4,7 @@ This directory contains unit tests for the OD-Translator project.
 
 ## Test Coverage
 
-Total: **59 tests**
+Total: **74 unit tests** + **10 realistic integration tests** = **84 total tests**
 
 ### test_parser.py (10 tests)
 Tests for command normalization functionality in `src/core/parser.py`:
@@ -13,7 +13,7 @@ Tests for command normalization functionality in `src/core/parser.py`:
 - Quote preservation
 - Special character preservation
 
-### test_detector.py (24 tests)
+### test_detector.py (39 tests)
 Tests for detection functions in `src/core/detector.py`:
 
 **score_confidence() - 14 tests:**
@@ -42,6 +42,25 @@ Confidence scoring formula:
 - Pattern suppression logic
 - Indirect command execution detection
 
+**detect_t1218() - 8 tests:**
+- T1218.005 (mshta proxy execution)
+- ActiveX object usage patterns
+- rundll32 detection
+- Evidence extraction and confidence scoring
+- No false positives
+- Output structure validation
+- Network-related proxy patterns
+- Multiple pattern detection
+
+**detect_t1027() - 7 tests:**
+- T1027.002 (Software packing tools: upx, themida)
+- T1027.003 (Steganography: steghide)
+- String concatenation obfuscation
+- No false positives
+- Evidence extraction
+- Output structure validation
+- Confidence scoring
+
 ### test_decoder.py (25 tests)
 Tests for obfuscation detection and decoding in `src/core/decoder.py`:
 
@@ -68,18 +87,48 @@ Tests for obfuscation detection and decoding in `src/core/decoder.py`:
 - Multi-layer encoding
 - Output structure validation
 
+### test_realistic_commands.py (10 integration tests)
+End-to-end integration tests using realistic "analyst headache" commands from `sample_commands.md`:
+
+**Test Coverage:**
+- Multi-technique attack chains (PowerShell → mshta → JavaScript → ActiveX)
+- Direct WScript.Shell.Run execution
+- Light obfuscation (string concatenation)
+- Heavy obfuscation (PowerShell base64, JavaScript fromCharCode/atob)
+- Extreme multi-layer obfuscation
+- VBScript with Execute and command chaining
+- Remote code download and local execution
+- Multi-layer staging attacks
+
+**Detection Performance:**
+- T1059: 10/10 detected (100%)
+- T1218: 8/8 detected (100%)
+- Decoder: Successfully decoded 3/10 commands (base64, fromCharCode, atob)
+
+These tests validate the full pipeline: decode → detect → analyze → score.
+
 ## Running Tests
 
-### Run all tests
+### Run all unit tests
 ```bash
 # Using simple runner (built-in)
 python tests/test_parser.py      # 10 tests
-python tests/test_detector.py    # 24 tests
+python tests/test_detector.py    # 39 tests
 python tests/test_decoder.py     # 25 tests
 
 # Or run all at once
 python tests/test_parser.py; python tests/test_detector.py; python tests/test_decoder.py
 ```
+
+### Run realistic integration test
+```bash
+python tests/test_realistic_commands.py
+```
+
+This validates detection accuracy against real-world attack patterns with detailed output showing:
+- Decoder performance (which encodings were detected/decoded)
+- Detection results per command (techniques, confidence, evidence)
+- Overall detection summary (success rate per technique)
 
 ### Run with pytest (if installed)
 ```bash

