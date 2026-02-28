@@ -45,6 +45,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
 		action="store_true",
 		help="Attempt to decode obfuscated commands (base64, fromCharCode, atob, URL encoding) before analysis.",
 	)
+	parser.add_argument(
+		"-p", "--pretty",
+		action="store_true",
+		help="Print detections in a human-readable format with separators instead of raw JSON."
+	)
 	return parser
 
 
@@ -67,27 +72,32 @@ def main() -> int:
 		decode=args.decode,
 	)
 	
-	# Output result as JSON
-	json_output = json.dumps(result, indent=2)
-	
-	# If output file specified, save to data/results/ directory with timestamp
-	if args.output:
-		output_dir = Path(__file__).resolve().parent.parent.parent / "data" / "results"
-		output_dir.mkdir(parents=True, exist_ok=True)
-		
-		# Add timestamp to filename (before extension)
-		name, ext = args.output.rsplit(".", 1) if "." in args.output else (args.output, "json")
-		timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-		timestamped_filename = f"{name}_{timestamp}.{ext}"
-		
-		output_path = output_dir / timestamped_filename
-		with open(output_path, "w") as f:
-			f.write(json_output)
-		print(f"Results saved to: {output_path}")
-		return 0
-	
-	# Otherwise print to stdout
-	print(json_output)
+	from core.output import format_detections_with_separator
+
+	# Output result as JSON or pretty format
+	if args.pretty:
+		print(f"Input Command: {result.get('input_command')}")
+		print(f"Normalized Command: {result.get('normalized_command')}")
+		print("\nDetections:")
+		print(format_detections_with_separator(result.get('detections', [])))
+	else:
+		json_output = json.dumps(result, indent=2)
+
+		# If output file specified, save to data/results/ directory with timestamp
+		if args.output:
+			output_dir = Path(__file__).resolve().parent.parent.parent / "data" / "results"
+			output_dir.mkdir(parents=True, exist_ok=True)
+			# Add timestamp to filename (before extension)
+			name, ext = args.output.rsplit(".", 1) if "." in args.output else (args.output, "json")
+			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+			timestamped_filename = f"{name}_{timestamp}.{ext}"
+			output_path = output_dir / timestamped_filename
+			with open(output_path, "w") as f:
+				f.write(json_output)
+			print(f"Results saved to: {output_path}")
+			return 0
+		# Otherwise print to stdout
+		print(json_output)
 	return 0
 
 

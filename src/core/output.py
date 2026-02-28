@@ -1,3 +1,39 @@
+def format_detections_with_separator(detections: list, separator: str = "\n----\n") -> str:
+    """
+    Format a list of detection dicts into a readable string with a separator between findings.
+    """
+    formatted = []
+    YELLOW = "\033[93m"
+    RESET = "\033[0m"
+    for idx, detection in enumerate(detections, 1):
+        # Highlight Finding number in yellow
+        lines = [f"{YELLOW}Finding {idx}:{RESET}"]
+        mitre = detection.get("mitre_mapping", {})
+        analysis = detection.get("analysis", {})
+        enrichment = detection.get("defensive_enrichment", {})
+        lines.append(f"  MITRE Tactic: {mitre.get('tactic', 'Unknown')}")
+        lines.append(f"  Technique: {mitre.get('technique', 'Unknown')} ({mitre.get('technique_id', 'Unknown')})")
+        if mitre.get('subtechnique_id') and mitre.get('subtechnique_id') != mitre.get('technique_id'):
+            lines.append(f"  Subtechnique: {mitre.get('subtechnique', '')} ({mitre.get('subtechnique_id', '')})")
+        lines.append(f"  Behavior: {analysis.get('behavior', 'N/A')}")
+        lines.append(f"  Attacker Intent: {analysis.get('attacker_intent', 'N/A')}")
+        lines.append(f"  Confidence: {analysis.get('confidence', 'N/A')}")
+        evidence = analysis.get('evidence', [])
+        if evidence:
+            lines.append("  Evidence:")
+            for ev in evidence:
+                lines.append(f"    - {ev}")
+        if enrichment:
+            lines.append("  Defensive Enrichment:")
+            for k, v in enrichment.items():
+                if isinstance(v, list):
+                    lines.append(f"    {k}:")
+                    for item in v:
+                        lines.append(f"      - {item}")
+                else:
+                    lines.append(f"    {k}: {v}")
+        formatted.append("\n".join(lines))
+    return separator.join(formatted)
 from typing import Any, Dict, List
 
 # This module defines the output structure for the ODT (Offense Detection Translator) system, 
@@ -31,6 +67,7 @@ def build_output(
     Build enriched output with MITRE mapping, analysis, and defensive enrichment.
     Takes detections and transforms them into a structured format suitable for SOC reports.
     """
+    
     return {
         "input_command": original_command,
         "normalized_command": normalized_command,
@@ -72,5 +109,6 @@ def _enrich_detections(detections: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             }
         
         enriched.append(enriched_detection)
+        
     
     return enriched
