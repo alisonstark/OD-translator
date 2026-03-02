@@ -1,0 +1,45 @@
+{
+  "generated_at_utc": "2026-03-02T16:49:06Z",
+  "records": [
+    {
+      "technique_id": "T1027",
+      "source_url": "https://attack.mitre.org/techniques/T1027/",
+      "html_path": "html/T1027.html",
+      "markdown_path": "markdown/T1027.md",
+      "retrieved_at_utc": "2026-03-02T16:49:05Z",
+      "source_title": "Obfuscated Files or Information, Technique T1027 - Enterprise | MITRE ATT&CK\u00ae"
+    },
+    {
+      "technique_id": "T1059",
+      "source_url": "https://attack.mitre.org/techniques/T1059/",
+      "html_path": "html/T1059.html",
+      "markdown_path": "markdown/T1059.md",
+      "retrieved_at_utc": "2026-03-02T16:49:05Z",
+      "source_title": "Command and Scripting Interpreter, Technique T1059 - Enterprise | MITRE ATT&CK\u00ae"
+    },
+    {
+      "technique_id": "T1071",
+      "source_url": "https://attack.mitre.org/techniques/T1071/",
+      "html_path": "html/T1071.html",
+      "markdown_path": "markdown/T1071.md",
+      "retrieved_at_utc": "2026-03-02T16:49:05Z",
+      "source_title": "Application Layer Protocol, Technique T1071 - Enterprise | MITRE ATT&CK\u00ae"
+    },
+    {
+      "technique_id": "T1105",
+      "source_url": "https://attack.mitre.org/techniques/T1105/",
+      "html_path": "html/T1105.html",
+      "markdown_path": "markdown/T1105.md",
+      "retrieved_at_utc": "2026-03-02T16:49:06Z",
+      "source_title": "Ingress Tool Transfer, Technique T1105 - Enterprise | MITRE ATT&CK\u00ae"
+    },
+    {
+      "technique_id": "T1218",
+      "source_url": "https://attack.mitre.org/techniques/T1218/",
+      "html_path": "html/T1218.html",
+      "markdown_path": "markdown/T1218.md",
+      "retrieved_at_utc": "2026-03-02T16:49:06Z",
+      "source_title": "System Binary Proxy Execution, Technique T1218 - Enterprise | MITRE ATT&CK\u00ae"
+    }
+  ]
+}

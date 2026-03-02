@@ -65,37 +65,3 @@ def test_normalize_special_characters():
     """Test that special characters are preserved."""
     cmd = "cmd.exe /c echo $HOME && ls -la"
     assert normalize_command(cmd) == cmd
-
-
-if __name__ == "__main__":
-    # Simple test runner
-    test_functions = [
-        test_normalize_basic_whitespace,
-        test_normalize_leading_trailing,
-        test_normalize_tabs,
-        test_normalize_newlines,
-        test_normalize_mixed_whitespace,
-        test_normalize_empty_string,
-        test_normalize_whitespace_only,
-        test_normalize_preserves_quotes,
-        test_normalize_single_space,
-        test_normalize_special_characters,
-    ]
-    
-    passed = 0
-    failed = 0
-    
-    for test in test_functions:
-        try:
-            test()
-            print(f"✓ {test.__name__}")
-            passed += 1
-        except AssertionError as e:
-            print(f"✗ {test.__name__}: {e}")
-            failed += 1
-        except Exception as e:
-            print(f"✗ {test.__name__}: Unexpected error: {e}")
-            failed += 1
-    
-    print(f"\n{passed} passed, {failed} failed")
-    sys.exit(0 if failed == 0 else 1)

@@ -107,17 +107,22 @@ Tests decoder module from `src/core/decoder.py`:
 ## Test Infrastructure
 
 ### Design Decisions
-1. **No external dependencies**: Built-in test runner using Python standard library only
-2. **Simple execution**: `python tests/test_*.py` - no pytest installation required
-3. **Clear output**: ✓/✗ symbols with test names and pass/fail counts
+1. **Industry-standard pytest**: Using pytest framework for professional testing workflow
+2. **Simple execution**: `pytest tests/` - runs all tests with detailed output
+3. **Clear output**: Detailed test session with pass/fail status for each test
 4. **Exit codes**: 0 for success, 1 for failure (CI/CD compatible)
+5. **Targeted testing**: Run specific tests with `-k` flag for filtered execution
 
 ### Test Output Format
 ```
-✓ test_normalize_basic_whitespace
-✓ test_normalize_leading_trailing
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0
+collected 86 items
+
+tests/test_decoder.py::test_detect_encoding_powershell_base64 PASSED
+tests/test_detector.py::test_score_confidence_zero_evidence PASSED
 ...
-10 passed, 0 failed
+============================= 86 passed in 0.44s ==============================
 ```
 
 ## Integration Testing

@@ -160,7 +160,3 @@ def test_realistic_commands():
             print(f"{tech}: {stats['detected']} detected (not expected, but good!)")
     
     print()
-
-
-if __name__ == "__main__":
-    test_realistic_commands()

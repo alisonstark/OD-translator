@@ -4,7 +4,7 @@ This directory contains unit tests for the OD-Translator project.
 
 ## Test Coverage
 
-Total: **74 unit tests** + **10 realistic integration tests** = **84 total tests**
+Total: **85 unit tests** + **1 integration test** = **86 total tests**
 
 ### test_parser.py (10 tests)
 Tests for command normalization functionality in `src/core/parser.py`:
@@ -13,7 +13,7 @@ Tests for command normalization functionality in `src/core/parser.py`:
 - Quote preservation
 - Special character preservation
 
-### test_detector.py (39 tests)
+### test_detector.py (75 tests)
 Tests for detection functions in `src/core/detector.py`:
 
 **score_confidence() - 14 tests:**
@@ -61,6 +61,23 @@ Confidence scoring formula:
 - Output structure validation
 - Confidence scoring
 
+**detect_t1105() - 5 tests:**
+- T1105 (Ingress Tool Transfer)
+- PowerShell DownloadFile detection
+- curl/wget download patterns
+- XMLHTTP remote fetch via mshta
+- No false positives on benign commands
+- Output structure validation
+
+**detect_t1071() - 6 tests:**
+- T1071.001 (Application Layer Protocol - Web Protocols)
+- HTTP/HTTPS URL detection in commands
+- PowerShell Invoke-WebRequest patterns
+- Suspicious TLD detection (.xyz, .top, .tk)
+- IP address URL patterns
+- No false positives on benign commands
+- Output structure validation
+
 ### test_decoder.py (25 tests)
 Tests for obfuscation detection and decoding in `src/core/decoder.py`:
 
@@ -87,10 +104,10 @@ Tests for obfuscation detection and decoding in `src/core/decoder.py`:
 - Multi-layer encoding
 - Output structure validation
 
-### test_realistic_commands.py (10 integration tests)
-End-to-end integration tests using realistic "analyst headache" commands from `sample_commands.md`:
+### test_realistic_commands.py (1 integration test)
+End-to-end integration test using realistic "analyst headache" commands from `sample_commands.md`:
 
-**Test Coverage:**
+**Test Coverage (10 commands tested):**
 - Multi-technique attack chains (PowerShell → mshta → JavaScript → ActiveX)
 - Direct WScript.Shell.Run execution
 - Light obfuscation (string concatenation)
@@ -109,41 +126,114 @@ These tests validate the full pipeline: decode → detect → analyze → score.
 
 ## Running Tests
 
-### Run all unit tests
+### Prerequisites
 ```bash
-# Using simple runner (built-in)
-python tests/test_parser.py      # 10 tests
-python tests/test_detector.py    # 39 tests
-python tests/test_decoder.py     # 25 tests
-
-# Or run all at once
-python tests/test_parser.py; python tests/test_detector.py; python tests/test_decoder.py
+pip install pytest>=7.0.0
 ```
 
-### Run realistic integration test
+### Run All Tests
 ```bash
-python tests/test_realistic_commands.py
-```
-
-This validates detection accuracy against real-world attack patterns with detailed output showing:
-- Decoder performance (which encodings were detected/decoded)
-- Detection results per command (techniques, confidence, evidence)
-- Overall detection summary (success rate per technique)
-
-### Run with pytest (if installed)
-```bash
+# Run all tests
 pytest tests/
-pytest tests/test_parser.py -v
+
+# Run all tests with verbose output
+pytest tests/ -v
+
+# Run all tests with extra verbosity (shows individual assertions)
+pytest tests/ -vv
+```
+
+### Run Specific Test Files
+```bash
+pytest tests/test_parser.py      # 10 tests
+pytest tests/test_detector.py    # 75 tests (14 confidence + 50 detection + 11 T1105/T1071)
+pytest tests/test_decoder.py     # 25 tests
+pytest tests/test_realistic_commands.py  # 1 integration test
+```
+
+### Run Specific Test Functions
+```bash
+# Run a single test function
 pytest tests/test_detector.py::test_score_confidence_zero_evidence
+
+# Run a specific class of tests
+pytest tests/test_detector.py::TestDetector  # (if using test classes)
+```
+
+### Targeted Test Filtering with `-k`
+```bash
+# Run all T1105 and T1071 tests
+pytest tests/test_detector.py -k "t1105 or t1071"
+
+# Run all confidence scoring tests
+pytest tests/test_detector.py -k "confidence"
+
+# Run all encoding detection tests
+pytest tests/test_decoder.py -k "detect_encoding"
+
+# Exclude specific tests
+pytest tests/ -k "not realistic"
+```
+
+### Useful Pytest Options
+```bash
+# Stop on first failure
+pytest tests/ -x
+
+# Show local variables on failure
+pytest tests/ -l
+
+# Show short traceback
+pytest tests/ --tb=short
+
+# Show full traceback
+pytest tests/ --tb=long
+
+# Show only failed tests
+pytest tests/ --failed-first
+
+# Quiet mode (only show dots)
+pytest tests/ -q
+
+# Show print statements
+pytest tests/ -s
+```
+
+### Watch Mode (Re-run on file changes)
+```bash
+# Requires pytest-watch
+pip install pytest-watch
+ptw tests/
+```
+
+### Example Output
+```bash
+$ pytest tests/ -v
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0
+collected 86 items
+
+tests/test_decoder.py::test_detect_encoding_powershell_base64 PASSED     [  1%]
+tests/test_decoder.py::test_decode_powershell_base64_simple PASSED       [  8%]
+...
+tests/test_detector.py::test_score_confidence_zero_evidence PASSED       [ 30%]
+tests/test_detector.py::test_detect_t1059_mshta_javascript PASSED        [ 46%]
+tests/test_detector.py::test_detect_t1105_curl_download_output PASSED    [ 76%]
+tests/test_detector.py::test_detect_t1071_http_url_in_command PASSED     [ 81%]
+...
+tests/test_parser.py::test_normalize_basic_whitespace PASSED             [ 88%]
+tests/test_realistic_commands.py::test_realistic_commands PASSED         [100%]
+
+============================= 86 passed in 0.30s ==============================
 ```
 
 ## Test Structure
 
 Each test file includes:
 1. Comprehensive docstrings explaining what's being tested
-2. Simple built-in test runner (no dependencies)
-3. Clear pass/fail output with counts
-4. Exit code 0 for success, 1 for failure
+2. Standard pytest test functions (prefixed with `test_`)
+3. Clear assertions with descriptive error messages
+4. Isolated tests with no side effects or dependencies between tests
 
 ## Adding New Tests
 
@@ -168,39 +258,66 @@ When adding new functionality to OD-Translator:
        assert result == expected_value
    ```
 
-3. **Add to test runner** at bottom of file:
-   ```python
-   if __name__ == "__main__":
-       test_functions = [
-           test_feature_specific_behavior,
-           # ... more tests
-       ]
-       # ... runner code
+3. **Run the new tests**:
+   ```bash
+   # Run your new test file
+   pytest tests/test_yourmodule.py -v
+   
+   # Or run a specific test function
+   pytest tests/test_yourmodule.py::test_feature_specific_behavior -v
    ```
 
-## Expected Output
+## Integration Test Details
 
-Successful test run:
+The `test_realistic_commands.py` integration test validates detection accuracy against real-world attack patterns with detailed output showing:
+- Decoder performance (which encodings were detected/decoded)
+- Detection results per command (techniques, confidence, evidence)
+- Overall detection summary (success rate per technique)
+
+**Detection Performance:**
+- T1059: 10/10 detected (100%)
+- T1218: 8/8 detected (100%)
+- Decoder: Successfully decoded 3/10 commands (base64, fromCharCode, atob)
+
+## Expected Test Output
+
+### Successful Test Run
 ```
-✓ test_normalize_basic_whitespace
-✓ test_normalize_leading_trailing
-...
-10 passed, 0 failed
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0
+collected 86 items
 
-✓ test_score_confidence_zero_evidence
-✓ test_detect_t1059_mshta_javascript
+tests/test_decoder.py::test_detect_encoding_powershell_base64 PASSED     [  1%]
+tests/test_decoder.py::test_decode_powershell_base64_simple PASSED       [  8%]
 ...
-24 passed, 0 failed
+tests/test_detector.py::test_score_confidence_zero_evidence PASSED       [ 30%]
+tests/test_parser.py::test_normalize_basic_whitespace PASSED             [ 88%]
+tests/test_realistic_commands.py::test_realistic_commands PASSED         [100%]
 
-✓ test_detect_encoding_powershell_base64
-...
-25 passed, 0 failed
+============================= 86 passed in 0.30s ==============================
 ```
 
-Failed test run:
+### Failed Test Run
 ```
-✓ test_normalize_basic_whitespace
-✗ test_normalize_leading_trailing: AssertionError
-...
-9 passed, 1 failed
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0
+collected 86 items
+
+tests/test_detector.py::test_score_confidence_zero_evidence PASSED       [ 30%]
+tests/test_detector.py::test_detect_t1059_mshta_javascript FAILED        [ 31%]
+
+================================== FAILURES ===================================
+______________________ test_detect_t1059_mshta_javascript ______________________
+
+    def test_detect_t1059_mshta_javascript():
+        """Test T1059.007 detection for JavaScript via mshta."""
+        cmd = "mshta.exe javascript:alert('test')"
+        detections = detect_t1059(cmd)
+    
+>       assert len(detections) > 0
+E       AssertionError: assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_detector.py:123: AssertionError
+======================= 1 failed, 85 passed in 0.35s ========================
 ```

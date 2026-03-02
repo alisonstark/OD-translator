@@ -279,6 +279,18 @@ Force refresh the local MITRE ATT&CK cache:
 python src/cli/main.py "whoami" --refresh-mitre
 ```
 
+### Sync Official MITRE Technique Docs (Offline)
+
+Download authoritative MITRE ATT&CK technique pages into `data/mitre_docs/` as both raw HTML and generated Markdown:
+```bash
+python scripts/sync_mitre_docs.py --all-from-rules --format both
+```
+
+This generates:
+- `data/mitre_docs/html/<TECHNIQUE_ID>.html`
+- `data/mitre_docs/markdown/<TECHNIQUE_ID>.md`
+- `data/mitre_docs/manifest.json`
+
 ### VS Code Debugging
 
 Use this launch configuration (`.vscode/launch.json`):
@@ -457,52 +469,70 @@ The [pipeline.py](src/core/pipeline.py) module coordinates all layers, ensuring:
 
 ## 🧪 Testing
 
+### Install Test Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run All Unit Tests
+
+```bash
+pytest tests/
+```
+
+### Run Targeted Tests
+
+```bash
+# Test specific techniques
+pytest tests/test_detector.py -k "t1105 or t1071"
+
+# Test specific functions
+pytest tests/test_detector.py -k "confidence"
+
+# Verbose output
+pytest tests/ -v
+```
+
 ### Running Unit Tests
 
 The project includes comprehensive unit tests covering:
 
 - **📏 Command Normalization** (10 tests): Whitespace handling, edge cases, special characters
 - **📊 Confidence Scoring** (14 tests): Evidence-based scoring, bonuses, penalties, edge cases
-- **🎯 Technique Detection** (25 tests): T1059, T1218, T1027, T1105, T1071 detection with evidence extraction
+- **🎯 Technique Detection** (36 tests): T1059, T1218, T1027, T1105, T1071 detection with evidence extraction
 - **🔓 Obfuscation Decoding** (25 tests): PowerShell base64, JavaScript atob/fromCharCode, URL encoding
-- **🔗 Integration Tests** (10 tests): Realistic attack chains with 100% detection accuracy
+- **🔗 Integration Tests** (1 test): Realistic attack chains with 100% detection accuracy
 
-**Total: 84 tests (100% pass rate)**
+**Total: 86 tests (100% pass rate)**
 
 ### Run All Tests
 
 ```bash
-python tests/test_parser.py              # 10 unit tests
-python tests/test_detector.py            # 39 unit tests
-python tests/test_decoder.py             # 25 unit tests
-python tests/test_realistic_commands.py  # 10 integration tests
+pytest tests/ -v
 ```
 
 ### Expected Output
 
 ```
-✓ test_normalize_basic_whitespace
-✓ test_normalize_multiple_spaces
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0
+collected 86 items
+
+tests/test_decoder.py::test_detect_encoding_powershell_base64 PASSED
+tests/test_decoder.py::test_decode_powershell_base64_simple PASSED
 ...
-10 passed, 0 failed
-
-✓ test_score_confidence_zero_evidence
-✓ test_detect_t1059_mshta_javascript
+tests/test_detector.py::test_score_confidence_zero_evidence PASSED
+tests/test_detector.py::test_detect_t1059_mshta_javascript PASSED
+tests/test_detector.py::test_detect_t1105_curl_download_output PASSED
+tests/test_detector.py::test_detect_t1071_http_url_in_command PASSED
 ...
-39 passed, 0 failed
-
-✓ test_detect_encoding_powershell_base64
-✓ test_detect_encoding_javascript_atob
+tests/test_parser.py::test_normalize_basic_whitespace PASSED
+tests/test_parser.py::test_normalize_special_characters PASSED
 ...
-25 passed, 0 failed
+tests/test_realistic_commands.py::test_realistic_commands PASSED
 
-[10/10] Multi-layer staging: PS→mshta→vbscript→cmd
-Expected: T1059, T1218
-Detected: T1059, T1218
-✓ All expected techniques detected!
-
-T1059: 10/10 detected (100%)
-T1218: 8/8 detected (100%)
+============================= 86 passed in 0.44s ==============================
 ```
 
 ### Test Details
@@ -593,6 +623,7 @@ For detailed testing documentation, see [tests/README.md](tests/README.md).
 - **[changes_summary.md](changes_summary.md)** - Detailed changelog and version history
 - **[docs/function_flow.mmd](docs/function_flow.mmd)** - Mermaid diagram of function flow
 - **[sample_commands.md](sample_commands.md)** - Sample offensive commands for testing
+- **[data/mitre_docs/README.md](data/mitre_docs/README.md)** - Offline MITRE ATT&CK documentation sync workflow
 
 ---
 
