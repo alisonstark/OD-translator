@@ -4,7 +4,7 @@ This directory contains unit tests for the OD-Translator project.
 
 ## Test Coverage
 
-Total: **85 unit tests** + **1 integration test** = **86 total tests**
+Total: **97 unit tests** + **27 integration/benign tests** = **124 total tests**
 
 ### test_parser.py (10 tests)
 Tests for command normalization functionality in `src/core/parser.py`:
@@ -13,7 +13,7 @@ Tests for command normalization functionality in `src/core/parser.py`:
 - Quote preservation
 - Special character preservation
 
-### test_detector.py (75 tests)
+### test_detector.py (62 tests)
 Tests for detection functions in `src/core/detector.py`:
 
 **score_confidence() - 14 tests:**
@@ -78,6 +78,22 @@ Confidence scoring formula:
 - No false positives on benign commands
 - Output structure validation
 
+**detect_t1543() - 5 tests:**
+- T1543.003 (Windows Service creation via PowerShell)
+- T1543.003 (Service creation via sc.exe)
+- T1543.003 (Registry-based service modification)
+- No false positives on benign commands
+- Output structure validation
+
+**detect_t1055() - 7 tests:**
+- T1055.001 (DLL Injection via CreateRemoteThread API)
+- T1055.002 (Process Injection via Invoke-ReflectivePEInjection)
+- T1055.001 (DLL Injection via Invoke-DllInjection)
+- T1055.001 (LoadLibrary-based injection chains)
+- T1055.001 (Injection targeting suspicious processes - svchost, explorer, lsass)
+- No false positives on benign commands
+- Output structure validation
+
 ### test_decoder.py (25 tests)
 Tests for obfuscation detection and decoding in `src/core/decoder.py`:
 
@@ -123,6 +139,27 @@ End-to-end integration test using realistic "analyst headache" commands from `sa
 - Decoder: Successfully decoded 3/10 commands (base64, fromCharCode, atob)
 
 These tests validate the full pipeline: decode → detect → analyze → score.
+
+### test_benign_commands.py (26 tests)
+False-positive baseline testing against legitimate, non-malicious system administration commands:
+
+**Purpose:** Validate that detection engine minimizes false positives without sacrificing malware detection.
+
+**Test Coverage:**
+- Windows Update checking and installation
+- Service management queries and restarts
+- User account and group operations
+- System monitoring and diagnostics
+- Network configuration and troubleshooting
+- File system operations and cleanup
+- PowerShell module loading and script operations
+- Registry queries and software management
+- Process enumeration and monitoring
+- Scheduled task creation and management
+- Legitimate automation and batch scripts
+- Script execution frameworks (PowerShell DSC, Ansible)
+
+**False-Positive Rate:** 0/26 (0% - All benign commands correctly return no detections)
 
 ## Running Tests
 

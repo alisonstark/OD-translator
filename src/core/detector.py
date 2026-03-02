@@ -321,6 +321,30 @@ def detect_t1071(command: str, refresh_mitre: bool = False) -> List[Dict[str, ob
     )
 
 
+def detect_t1543(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    """
+    Detect T1543 (Create or Modify System Process) technique.
+    Identifies patterns related to creating or modifying system processes for persistence.
+    """
+    return _detect_technique_generic(
+        command,
+        "T1543",
+        refresh_mitre=refresh_mitre,
+    )
+
+
+def detect_t1055(command: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
+    """
+    Detect T1055 (Process Injection) technique.
+    Identifies patterns related to injecting malicious code into running processes.
+    """
+    return _detect_technique_generic(
+        command,
+        "T1055",
+        refresh_mitre=refresh_mitre,
+    )
+
+
 def detect_technique(command: str, technique_id: str, refresh_mitre: bool = False) -> List[Dict[str, object]]:
     if technique_id == "T1059":
         return detect_t1059(command, refresh_mitre=refresh_mitre)
@@ -332,6 +356,10 @@ def detect_technique(command: str, technique_id: str, refresh_mitre: bool = Fals
         return detect_t1105(command, refresh_mitre=refresh_mitre)
     if technique_id == "T1071":
         return detect_t1071(command, refresh_mitre=refresh_mitre)
+    if technique_id == "T1543":
+        return detect_t1543(command, refresh_mitre=refresh_mitre)
+    if technique_id == "T1055":
+        return detect_t1055(command, refresh_mitre=refresh_mitre)
 
     return _detect_technique_generic(
         command,

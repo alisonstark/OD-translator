@@ -933,4 +933,90 @@ RULES = [
             "technique": "T1071",
             "sub_technique": ".001"
         },
+        # T1543 - Create or Modify System Process
+        {
+            "id": "powershell_new_service",
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*(?:New-Service|Add-NetAdapterBinding)\s+",
+            "technique": "T1543",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "sc_create_service",
+            "pattern": r"(?:sc|sc\.exe)\s+(?:create|config|start|stop|delete)\s+\w+",
+            "technique": "T1543",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "net_start_service",
+            "pattern": r"(?:net|net\.exe)\s+(?:start|stop|use)\s+\w+",
+            "technique": "T1543",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "registry_services_modification",
+            "pattern": r"(?:reg\s+add|Set-ItemProperty)\s+.*\\Services\\",
+            "technique": "T1543",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "suspicious_service_binary_path",
+            "pattern": r"(?:New-Service|sc\s+create|Set-ItemProperty).*(?:powershell|cmd|rundll32|mshta|regsvcs|regasm)",
+            "technique": "T1543",
+            "sub_technique": ".003"
+        },
+        {
+            "id": "launchd_plist_modification",
+            "pattern": r"(?:launchctl|plist)|~/\.LaunchAgents/|/Library/LaunchAgents/",
+            "technique": "T1543",
+            "sub_technique": ".004"
+        },
+        {
+            "id": "systemd_unit_creation",
+            "pattern": r"(?:systemctl|systemd-run)|/etc/systemd/system/|/usr/lib/systemd/system/",
+            "technique": "T1543",
+            "sub_technique": ".004"
+        },
+        # T1055 - Process Injection
+        {
+            "id": "createremotethread_pattern",
+            "pattern": r"(?i)(?:CreateRemoteThread|VirtualAllocEx|WriteProcessMemory|SetThreadContext)",
+            "technique": "T1055",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "invoke_reflective_injection",
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Invoke-ReflectivePEInjection",
+            "technique": "T1055",
+            "sub_technique": ".002"
+        },
+        {
+            "id": "invoke_dll_injection",
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*Invoke-(?:DllInjection|ProcessHollowing|ShellInjection)",
+            "technique": "T1055",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "process_hollowing_suspicion",
+            "pattern": r"(?:CreateProcess|CreateRemoteThread).*suspended|CREATION_SUSPENDED",
+            "technique": "T1055",
+            "sub_technique": ".012"
+        },
+        {
+            "id": "loadlibrary_injection_chain",
+            "pattern": r"(?i)(?:LoadLibrary|LoadLibraryA|LoadLibraryW).*(?:CreateRemoteThread|GetProcAddress)",
+            "technique": "T1055",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "dll_injection_suspicious_target",
+            "pattern": r"(?:explorer|svchost|lsass|winlogon|services|csrss).*(?:LoadLibrary|CreateRemoteThread|VirtualAllocEx)",
+            "technique": "T1055",
+            "sub_technique": ".001"
+        },
+        {
+            "id": "reflective_code_execution",
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\$reflectivepei|Reflective(?:DLL|PE|Code)Injection",
+            "technique": "T1055",
+            "sub_technique": ".002"
+        },
     ]

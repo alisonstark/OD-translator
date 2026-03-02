@@ -2,24 +2,26 @@
 
 ## 📋 Table of Contents
 
-- [Overview](#-overview)
-- [Problem Statement](#-problem-statement)
-- [Features](#-features)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Project Structure](#-project-structure)
-- [Usage](#-usage)
-- [Examples](#-examples)
-- [Architecture](#-architecture)
-- [Testing](#-testing)
-- [Use Cases](#-use-cases)
-- [Design Principles](#-design-principles)
-- [Roadmap](#-roadmap)
-- [Documentation](#-documentation)
-- [Project Status](#-project-status)
-- [Disclaimer](#-disclaimer)
+- [Overview](#overview)
+- [Problem Statement](#problem-statement)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Architecture](#architecture)
+- [Testing](#testing)
+- [Use Cases](#use-cases)
+- [Design Principles](#design-principles)
+- [Roadmap](#roadmap)
+- [Documentation](#documentation)
+- [Project Status](#project-status)
+- [Disclaimer](#disclaimer)
 
 ---
+
+<a id="overview"></a>
 
 ## 🎯 Overview
 
@@ -37,6 +39,8 @@ The output is structured, machine-readable, and suitable for use in detection en
 
 ---
 
+<a id="problem-statement"></a>
+
 ## 🔍 Problem Statement
 
 Offensive knowledge is abundant in cybersecurity: blogs, proof-of-concepts, red team reports, malware analyses, and exploit write-ups. However, this information is often:
@@ -50,6 +54,8 @@ Conversely, defenders often work with alerts, logs, and detections without fully
 The **Offensive–Defensive Translator** addresses this mismatch by providing a deterministic way to translate offensive artifacts into defender-focused intelligence.
 
 ---
+
+<a id="features"></a>
 
 ## ✨ Features
 
@@ -79,7 +85,7 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
   Machine-readable format suitable for automation, SIEM integration, and analysis workflows
 
 - 🧪 **Comprehensive Testing**  
-  84 tests (74 unit + 10 integration) covering normalization, confidence scoring, detection, decoding, and realistic attack chains (100% pass rate)
+  124 tests (98 unit + 26 integration/benign) covering normalization, confidence scoring, detection, decoding, and realistic attack chains (100% pass rate)
 
 **Current Technique Coverage:**
 - **Primary**: T1059 (Command and Scripting Interpreter)
@@ -88,8 +94,12 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
   - T1027 (Obfuscated Files or Information)
   - T1105 (Ingress Tool Transfer)
   - T1071 (Application Layer Protocol)
+  - T1543 (Create or Modify System Process)
+  - T1055 (Process Injection)
 
 ---
+
+<a id="requirements"></a>
 
 ## ⚙️ Requirements
 
@@ -99,7 +109,7 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
 > 💡 No external API keys or databases required for basic functionality. MITRE ATT&CK data is cached locally.
 
 ---
-
+<a id="installation"></a>
 ## 🧰 Installation
 
 ### Prerequisites
@@ -140,13 +150,14 @@ pip install -e .
 
 ---
 
+<a id="project-structure"></a>
+
 ## 📁 Project Structure
 
 ```
 OD-translator/
 ├── README.md                           # This file
 ├── TODO.md                             # Development tasks and roadmap
-├── changes_summary.md                  # Detailed changelog
 ├── requirements.txt                    # Python dependencies
 ├── LICENSE                             # Project license
 │
@@ -189,12 +200,14 @@ OD-translator/
 │   └── validate_output.py            # Output validation
 │
 └── docs/                              # Additional documentation
-    ├── changes_summary.md
-    ├── function_flow.mmd
-    └── test_implementation_summary.md
+    ├── changes_summary.md             # Changelog and version history
+    ├── cyber_kill_chain_mapping.md    # Kill chain stages analysis
+    └── function_flow.mmd              # Function flow visualization
 ```
 
 ---
+
+<a id="usage"></a>
 
 ## 🔧 Usage
 
@@ -310,7 +323,19 @@ Use this launch configuration (`.vscode/launch.json`):
 
 ---
 
+<a id="examples"></a>
+
 ## 💡 Examples
+
+> ⚠️ **Important**: The commands in this section and [sample_commands.md](sample_commands.md) are **real malicious attack patterns**. 
+> 
+> **DO NOT execute these commands on production systems or any system you don't own**. Many will trigger antivirus alerts and endpoint detection systems. 
+> 
+> If testing in a lab environment on Windows, you may need to **temporarily disable or whitelist your antivirus** to allow analysis. Recommended approach:
+> - Use an **isolated virtual machine** 
+> - Disable Real-Time Protection before running tests
+> - Re-enable antivirus immediately after testing
+> - Never connect test systems to production networks
 
 ### Example 1: LOLBin Proxy Execution
 
@@ -382,7 +407,7 @@ The `confidence` value (0.0–1.0) reflects detection certainty based on:
 - `0.3–0.5`: Low confidence (mostly generic indicators)
 
 ---
-
+<a id="architecture"></a>
 ## 🏗️ Architecture
 
 The project follows a **layered architecture** to ensure clarity, extensibility, and separation of concerns.
@@ -466,19 +491,13 @@ The [pipeline.py](src/core/pipeline.py) module coordinates all layers, ensuring:
 - **Composability**: Functions return structured data for chaining
 
 ---
-
+<a id="testing"></a>
 ## 🧪 Testing
 
 ### Install Test Dependencies
 
 ```bash
 pip install -r requirements.txt
-```
-
-### Run All Unit Tests
-
-```bash
-pytest tests/
 ```
 
 ### Run Targeted Tests
@@ -500,11 +519,61 @@ The project includes comprehensive unit tests covering:
 
 - **📏 Command Normalization** (10 tests): Whitespace handling, edge cases, special characters
 - **📊 Confidence Scoring** (14 tests): Evidence-based scoring, bonuses, penalties, edge cases
-- **🎯 Technique Detection** (36 tests): T1059, T1218, T1027, T1105, T1071 detection with evidence extraction
+- **🎯 Technique Detection** (48 tests): T1059, T1218, T1027, T1105, T1071, T1543, T1055 detection with evidence extraction
 - **🔓 Obfuscation Decoding** (25 tests): PowerShell base64, JavaScript atob/fromCharCode, URL encoding
 - **🔗 Integration Tests** (1 test): Realistic attack chains with 100% detection accuracy
+- **✓ Benign Command Testing** (26 tests): False-positive baseline against legitimate commands
 
-**Total: 86 tests (100% pass rate)**
+**Total: 124 tests (100% pass rate)**
+
+### Benign Command False-Positive Testing
+
+A critical component of detection quality is **minimizing false positives without sacrificing malware detection**.
+
+**Purpose:**
+This test suite validates the detection engine against **legitimate, non-malicious commands** that appear in normal Windows/Linux system administration and automation workflows. It establishes a baseline false-positive rate and identifies patterns that need refinement.
+
+**What Gets Tested:**
+- Windows system administration (Windows Update, disk checks, service listings, scheduled tasks)
+- Legitimate network operations (DNS queries, local health checks, monitoring)
+- DevOps & automation scripts (Docker, Git, npm, pip, Python packages)
+- Legitimate scripting operations (basic VBScript, PowerShell modules, batch scripts)
+- Logging & monitoring (log parsing, tailing files, event log queries)
+- File operations & backups (robocopy, compression archives, file copies)
+
+**Expected Results:**
+- Most benign commands should **NOT trigger detections**
+- Commands that DO trigger should have **LOW confidence** (<0.5) or be explained as acceptable trade-offs
+- **High-confidence detections** (>0.8) on benign commands indicate patterns that need refinement
+- False-positive rate should be <20% for medium+ confidence detections
+
+**Trade-off Philosophy:**
+Some false positives are acceptable to maintain malware detection sensitivity:
+- A 0.45-confidence detection on `powershell -NoProfile` is acceptable noise
+- A 0.85-confidence detection on legitimate activity is worth investigating, even if rare
+- Analysts use confidence scores to prioritize investigations and filter noise
+
+**Why This Matters:**
+- **Analyst Trust**: Reduces alert fatigue and builds confidence in the tool
+- **Operational Efficiency**: Analysts spend time on high-signal detections, not false positives
+- **Feedback Loop**: Documents which patterns are overly sensitive and need adjustment
+- **Defense Maturity**: Reflects real-world SOC workflows where true positives matter more than raw detection counts
+
+**Run Benign Command Tests:**
+```bash
+# Run all benign command tests
+pytest tests/test_benign_commands.py -v
+
+# Run with detailed false-positive analysis
+pytest tests/test_benign_commands.py::test_benign_commands_false_positive_rate -v -s
+```
+
+**Understanding False Positives:**
+When a benign command triggers a detection, examine:
+1. **Confidence score**: Is it acceptable noise (<0.5) or a pattern to refine?
+2. **Technique**: Which MITRE technique triggered? Is it worth the false positive rate?
+3. **Evidence**: What indicators matched? Are they too generic?
+4. **Context**: In a real SOC, would an analyst care about this detection from a legitimate system?
 
 ### Run All Tests
 
@@ -517,10 +586,12 @@ pytest tests/ -v
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0
-collected 86 items
+collected 112 items
 
+tests/test_benign_commands.py::test_benign_windows_update_check PASSED
+tests/test_benign_commands.py::test_benign_get_process PASSED
+...
 tests/test_decoder.py::test_detect_encoding_powershell_base64 PASSED
-tests/test_decoder.py::test_decode_powershell_base64_simple PASSED
 ...
 tests/test_detector.py::test_score_confidence_zero_evidence PASSED
 tests/test_detector.py::test_detect_t1059_mshta_javascript PASSED
@@ -528,11 +599,9 @@ tests/test_detector.py::test_detect_t1105_curl_download_output PASSED
 tests/test_detector.py::test_detect_t1071_http_url_in_command PASSED
 ...
 tests/test_parser.py::test_normalize_basic_whitespace PASSED
-tests/test_parser.py::test_normalize_special_characters PASSED
-...
 tests/test_realistic_commands.py::test_realistic_commands PASSED
 
-============================= 86 passed in 0.44s ==============================
+============================= 112 passed in 0.26s ==============================
 ```
 
 ### Test Details
@@ -548,6 +617,8 @@ Each test validates detection functions independently by:
 For detailed testing documentation, see [tests/README.md](tests/README.md).
 
 ---
+
+<a id="use-cases"></a>
 
 ## 🎯 Use Cases
 
@@ -565,6 +636,8 @@ For detailed testing documentation, see [tests/README.md](tests/README.md).
 
 ---
 
+<a id="design-principles"></a>
+
 ## 👨‍💻 Design Principles
 
 - **🛡️ Defender-first mindset**  
@@ -580,10 +653,10 @@ For detailed testing documentation, see [tests/README.md](tests/README.md).
   Focus on explainable, practical intelligence rather than exhaustive coverage
 
 ---
-
+<a id="roadmap"></a>
 ## 🛣️ Roadmap
 
-### Phase 1 — Core Translator ✅ (Current)
+### Phase 1 — Core Translator ✅ (Complete)
 
 - ✅ Command-based input support
 - ✅ MITRE ATT&CK mapping (T1059, T1218, T1027, T1105, T1071)
@@ -591,13 +664,15 @@ For detailed testing documentation, see [tests/README.md](tests/README.md).
 - ✅ Defensive enrichment logic
 - ✅ Obfuscation decoding
 - ✅ Confidence scoring
+- ✅ False-positive baseline testing
 
-### Phase 2 — Detection-Oriented Expansion
+### Phase 2 — Detection-Oriented Expansion 🔄 (Current)
 
-- 🔄 Predefined detection pattern library
-- 🔄 Mapping to common EDR/SIEM telemetry
+- ✅ Predefined detection pattern library (7 techniques with 180+ patterns)
+- ✅ Mapping to common EDR/SIEM telemetry (Sysmon, PowerShell, WMI, etc.)
+- ✅ Additional MITRE techniques (T1543, T1055)
 - 🔄 Improved process relationship analysis
-- 🔄 Additional MITRE techniques (T1105, T1543, T1055)
+- 🔄 Advanced detection patterns for persistence and injection techniques
 
 ### Phase 3 — Advanced Enrichment
 
@@ -617,15 +692,20 @@ For detailed testing documentation, see [tests/README.md](tests/README.md).
 
 ---
 
+<a id="documentation"></a>
+
 ## 📚 Documentation
 
 - **[tests/README.md](tests/README.md)** - Detailed testing guide and test structure
-- **[changes_summary.md](changes_summary.md)** - Detailed changelog and version history
+- **[docs/changes_summary.md](docs/changes_summary.md)** - Detailed changelog and version history
+- **[docs/cyber_kill_chain_mapping.md](docs/cyber_kill_chain_mapping.md)** - Cyber kill chain analysis: how techniques map to attack stages
 - **[docs/function_flow.mmd](docs/function_flow.mmd)** - Mermaid diagram of function flow
 - **[sample_commands.md](sample_commands.md)** - Sample offensive commands for testing
 - **[data/mitre_docs/README.md](data/mitre_docs/README.md)** - Offline MITRE ATT&CK documentation sync workflow
 
 ---
+
+<a id="project-status"></a>
 
 ## 🚧 Project Status
 
@@ -639,6 +719,8 @@ This project is under **active development** and is intentionally designed to ev
 **Contributions, ideas, and critical feedback are welcome!**
 
 ---
+
+<a id="disclaimer"></a>
 
 ## ⚠️ Disclaimer
 
