@@ -1,5 +1,31 @@
 # Changes Summary (Multi-technique Pipeline + attackcti)
 
+Date: 2026-03-02
+
+## Pytest Integration & Test Infrastructure Modernization
+- **Testing Framework Migration**: Transitioned from custom manual test runners to industry-standard pytest (v9.0.2+)
+  - Removed manual test runner blocks (`if __name__ == "__main__"` boilerplate) from all 4 test files
+  - Reduces maintenance burden (~150 lines of boilerplate code removed)
+  - Enables modern testing workflows and CI/CD integration
+- **All Tests Passing**: 86 total tests (85 unit + 1 integration) all pass with pytest
+  - 10 parser tests: Command normalization
+  - 75 detector tests: Confidence scoring (14) + T1059/T1218/T1027/T1105/T1071 detection (61)
+  - 25 decoder tests: Encoding detection and multi-layer decoding
+  - 1 integration test: Realistic attack chains with 100% detection accuracy
+- **Documentation Updates**:
+  - `tests/README.md`: Comprehensive pytest usage guide with filtering, targeting, and advanced options
+  - `docs/test_implementation_summary.md`: Updated design decisions to reflect pytest adoption
+  - `README.md`: Removed manual test runner references, updated to pytest-only commands
+  - Root `README.md`: Test count updated to 86 total (100% pass rate)
+- **Pytest Capabilities Documented**:
+  - Basic execution: `pytest tests/`
+  - Specific files: `pytest tests/test_detector.py`
+  - Single functions: `pytest tests/test_detector.py::test_score_confidence_zero_evidence`
+  - Pattern filtering: `pytest tests/test_detector.py -k "t1105 or t1071"`
+  - Advanced options: `-x`, `-l`, `--tb=short`, `--tb=long`, `--failed-first`, `-q`, `-s`
+  - Watch mode: `pytest-watch` integration documented
+- **Zero Breaking Changes**: All test logic preserved, only execution method modernized
+
 Date: 2026-02-26
 
 ## T1105 & T1071 Detection (Network-Based Techniques)
