@@ -1,12 +1,19 @@
 flowchart TD
-    Start([CLI Entry: main.py]) --> ArgParse[Parse Arguments<br/>--decode, --output<br/>--refresh-mitre<br/>--include-secondary-techniques]
-    ArgParse --> ReadInput{Input Source?}
+    Start([CLI Entry: main.py]) --> ArgParse[Parse Arguments<br/>--decode, --output<br/>--refresh-mitre<br/>--batch-input<br/>--generate-report]
+    ArgParse --> BatchCheck{--batch-input flag?}
+    
+    BatchCheck -->|Yes| BatchPath[Load Batch Commands<br/>batch_processor.py<br/>JSON/CSV/TXT parsing]
+    BatchPath --> ProcessBatch[process_batch_commands<br/>Loop through all commands]
+    ProcessBatch --> BatchPipeline
+    
+    BatchCheck -->|No| ReadInput{Input Source?}
     ReadInput -->|Arguments| JoinArgs[Join command args]
     ReadInput -->|stdin| ReadStdin[Read from stdin]
-    JoinArgs --> Pipeline
-    ReadStdin --> Pipeline
+    JoinArgs --> SinglePipeline
+    ReadStdin --> SinglePipeline
     
-    Pipeline[translate_command<br/>pipeline.py] --> DecodeCheck{--decode flag?}
+    SinglePipeline[translate_command<br/>pipeline.py<br/>Single command] --> DecodeCheck{--decode flag?}
+    BatchPipeline[Analyze each command<br/>via translate_command] --> DecodeCheck
     
     DecodeCheck -->|Yes| DetectEnc[detect_encoding_types<br/>decoder.py]
     DetectEnc --> DecodeCmd[decode_command<br/>decoder.py]
@@ -19,29 +26,38 @@ flowchart TD
     UseOriginal1 --> Normalize
     UseOriginal2 --> Normalize
     
-    Normalize[normalize_command<br/>parser.py] --> DetectPrimary[detect_t1059<br/>detector.py]
+    Normalize[normalize_command<br/>parser.py] --> GetCache[get_attackcti_cache<br/>mitre.py]
     
-    DetectPrimary --> MatchIndicators1[_match_indicators<br/>evidences from INDICATOR_DB]
-    MatchIndicators1 --> ScoreConf1[score_confidence<br/>evidence-based scoring]
-    ScoreConf1 --> SecCheck{include_secondary<br/>techniques?}
+    GetCache --> DetectAll[Detect ALL 7 Techniques<br/>Always enabled by default]
+    DetectAll --> DetectT1059[detect_t1059<br/>Command & Scripting]
+    DetectT1059 --> MatchIndicators1[_match_indicators]
+    MatchIndicators1 --> ScoreConf1[score_confidence]
     
-    SecCheck -->|Yes| GetCache[get_attackcti_cache<br/>mitre.py]
-    GetCache --> DetectSec[detect_secondary_techniques<br/>detector.py]
-    DetectSec --> DetectT1218[detect_t1218<br/>LOLBins detection]
+    ScoreConf1 --> DetectT1218[detect_t1218<br/>LOLBins detection]
     DetectT1218 --> MatchIndicators2[_match_indicators]
     MatchIndicators2 --> ScoreConf2[score_confidence]
+    
     ScoreConf2 --> DetectT1027[detect_t1027<br/>Obfuscation detection]
     DetectT1027 --> MatchIndicators3[_match_indicators]
     MatchIndicators3 --> ScoreConf3[score_confidence]
+    
     ScoreConf3 --> DetectT1105[detect_t1105<br/>Ingress Tool Transfer]
     DetectT1105 --> MatchIndicators4[_match_indicators]
     MatchIndicators4 --> ScoreConf4[score_confidence]
+    
     ScoreConf4 --> DetectT1071[detect_t1071<br/>Application Layer Protocol]
     DetectT1071 --> MatchIndicators5[_match_indicators]
     MatchIndicators5 --> ScoreConf5[score_confidence]
-    ScoreConf5 --> MergeDetections
     
-    SecCheck -->|No| MergeDetections[Merge all detections]
+    ScoreConf5 --> DetectT1543[detect_t1543<br/>Persistence detection]
+    DetectT1543 --> MatchIndicators6[_match_indicators]
+    MatchIndicators6 --> ScoreConf6[score_confidence]
+    
+    ScoreConf6 --> DetectT1055[detect_t1055<br/>Process Injection]
+    DetectT1055 --> MatchIndicators7[_match_indicators]
+    MatchIndicators7 --> ScoreConf7[score_confidence]
+    
+    ScoreConf7 --> MergeDetections[Merge all 7 technique<br/>detections]
     
     MergeDetections --> BuildOutput[build_output<br/>output.py]
     BuildOutput --> EnrichDet[_enrich_detections<br/>Add metadata from METADATA_DB]
@@ -49,21 +65,47 @@ flowchart TD
     DedupeEv --> AddDecodeInfo{decode_info<br/>available?}
     
     AddDecodeInfo -->|Yes| AddDecodeMeta[Add decode_info to output]
-    AddDecodeInfo -->|No| FinalOutput
-    AddDecodeMeta --> FinalOutput
+    AddDecodeInfo -->|No| CheckBatch
+    AddDecodeMeta --> CheckBatch
     
-    FinalOutput[Final JSON Output] --> OutputCheck{--output flag?}
-    OutputCheck -->|Yes| SaveFile[Save to data/results/<br/>with timestamp]
-    OutputCheck -->|No| PrintStdout[Print to stdout]
+    CheckBatch{Batch or<br/>Single?}
+    CheckBatch -->|Single| FinalOutput[Final JSON Output]
+    CheckBatch -->|Batch| AggregateResults[Aggregate batch results<br/>& metadata]
+    
+    AggregateResults --> BatchOutput[Batch JSON Output]
+    
+    FinalOutput --> ReportCheck{--generate-report?}
+    BatchOutput --> ReportCheck
+    
+    ReportCheck -->|Yes| GenReport[generate_report<br/>report_generator.py<br/>Create HTML visualization]
+    ReportCheck -->|No| OutputCheck
+    GenReport --> SaveReport[Save HTML to<br/>data/reports/]
+    SaveReport --> OutputCheck
+    
+    OutputCheck{Output mode?}
+    OutputCheck -->|JSON to file| SaveFile[Save to data/results/<br/>--output flag]
+    OutputCheck -->|stdout| PrintStdout[Print JSON to stdout]
+    OutputCheck -->|Batch| BatchSaveFile[Save aggregated JSON<br/>to data/results/]
     
     SaveFile --> End([End])
     PrintStdout --> End
+    BatchSaveFile --> End
     
     style Start fill:#e1f5e1
     style End fill:#ffe1e1
-    style Pipeline fill:#e1e5ff
+    style ArgParse fill:#e1e5ff
+    style BatchPath fill:#e5f5ff
+    style SinglePipeline fill:#e1e5ff
+    style BatchPipeline fill:#e5f5ff
     style Normalize fill:#fff4e1
-    style DetectPrimary fill:#ffe1f5
-    style DetectSec fill:#ffe1f5
+    style DetectAll fill:#ffe1f5
+    style DetectT1059 fill:#ffe1f5
+    style DetectT1218 fill:#ffe1f5
+    style DetectT1027 fill:#ffe1f5
+    style DetectT1105 fill:#ffe1f5
+    style DetectT1071 fill:#ffe1f5
+    style DetectT1543 fill:#ffe1f5
+    style DetectT1055 fill:#ffe1f5
     style BuildOutput fill:#e1f5ff
-    style FinalOutput fill:#f5e1ff
+    style GenReport fill:#f5e1ff
+    style SaveReport fill:#f5e1ff

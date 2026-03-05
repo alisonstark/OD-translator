@@ -4,7 +4,7 @@ This directory contains unit tests for the OD-Translator project.
 
 ## Test Coverage
 
-Total: **97 unit tests** + **27 integration/benign tests** = **124 total tests**
+Total: **117 unit tests** + **27 integration/benign tests** = **144 total tests**
 
 ### test_parser.py (10 tests)
 Tests for command normalization functionality in `src/core/parser.py`:
@@ -119,6 +119,43 @@ Tests for obfuscation detection and decoding in `src/core/decoder.py`:
 - URL encoding
 - Multi-layer encoding
 - Output structure validation
+
+### test_batch_processor.py (5 tests)
+Tests for batch command ingestion and aggregated output in `src/core/batch_processor.py`:
+
+- JSON batch input parsing (list of strings)
+- JSON batch input parsing (list of objects with `command` key)
+- CSV batch parsing with `command` header
+- Plain-text batch parsing (one command per line)
+- Batch output structure validation (`batch_metadata`, `results`, `error_details`)
+
+### test_cli.py (3 tests)
+CLI integration tests for argument handling and batch execution in `src/cli/main.py`:
+
+- `--help` output includes new batch flags
+- Removed legacy `--include-secondary-techniques` flag is rejected
+- `--batch-input` generates a single aggregated JSON output file
+
+### test_report_generator.py (12 tests)
+Tests for HTML report generation in `src/core/report_generator.py`:
+
+**Single Command Reports (4 tests):**
+- HTML file creation for single command analysis
+- Command information inclusion (input and normalized)
+- Technique detections in report
+- Kill-chain visualization rendering
+
+**Batch Analysis Reports (5 tests):**
+- HTML file creation for batch analysis
+- Batch metadata inclusion (total, processed, errors, duration)
+- Execution timeline with risk indicators
+- Detected technique aggregation table
+- Error handling and error detail display
+
+**HTML Quality & Structure (3 tests):**
+- Default path creation (data/reports/)
+- HTML structure validation (DOCTYPE, closing tags)
+- Embedded CSS styling (colors, layout, interactive elements)
 
 ### test_realistic_commands.py (1 integration test)
 End-to-end integration test using realistic "analyst headache" commands from `sample_commands.md`:

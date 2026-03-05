@@ -1,5 +1,116 @@
 # Changes Summary (Multi-technique Pipeline + attackcti)
 
+Date: 2026-03-04
+
+## Phase 4: Professional HTML Report Generation
+
+### HTML Report Module (`src/core/report_generator.py`)
+- **Single Command Reports**: Professional HTML analysis for individual command forensics
+  - Input and normalized command display
+  - Detected techniques with expandable details
+  - Kill-chain phase visualization (0-8 phases mapped to MITRE techniques)
+  - Interactive technique cards with evidence and pattern matching
+  - Embedded CSS styling with responsive design
+
+- **Batch Analysis Reports**: Comprehensive batch analysis with timeline and aggregation
+  - Batch processing metadata (total, processed, errors, duration)
+  - Execution timeline with risk indicators (high-risk command highlighting)
+  - Aggregated technique coverage table (cross-command detection summary)
+  - Per-command detailed analysis sections
+  - Error tracking and diagnostics
+  - Kill-chain progression visualization
+
+- **HTML Features**:
+  - Professional gradient header and responsive layout
+  - Embedded CSS (dark theme, accessibility-friendly colors)
+  - Interactive JavaScript: clickable cards expand/collapse details
+  - Kill-chain phase mapping: displays all 9 MITRE phases with active techniques highlighted
+  - Timestamp and generation metadata in footer
+  - Export-friendly (can be saved, emailed, printed)
+
+### CLI Integration (`src/cli/main.py`)
+- New flags:
+  - `--generate-report`: Enable HTML report generation
+  - `--report-output <path>`: Custom report output path (optional)
+- Behavior:
+  - Single command: `odt --generate-report "cmd.exe /c dir"` → saves to `data/reports/analysis_TIMESTAMP.html`
+  - Batch mode: `odt --batch-input commands.txt --generate-report` → saves batch report alongside JSON
+  - Report generation is opt-in (default: JSON only)
+
+### Report Output Structure
+- **Default paths**: 
+  - Single: `data/reports/analysis_YYYYMMDD_HHMMSS.html`
+  - Batch: `data/reports/batch_YYYYMMDD_HHMMSS.html`
+- **Customizable**: `--report-output my_report.html` to override defaults
+
+### Testing Additions
+- Added `tests/test_report_generator.py` (12 tests):
+  - Single report creation and content validation (4 tests)
+  - Batch report creation, metadata, timeline, technique aggregation (5 tests)
+  - HTML structure and CSS validation (3 tests)
+- **Test count update**: 144 total tests (117 unit + 27 integration/benign), 100% pass rate
+
+### Documentation Updates
+- Updated `README.md` with HTML report section and usage examples
+- Updated `tests/README.md` with report generator test documentation
+- Updated project structure to show `test_report_generator.py`
+- Updated `TODO.md` to document Phase 4 completion
+
+---
+
+Date: 2026-03-04
+
+## Phase 3 Kickoff: All-Techniques-by-Default + Installable CLI + Batch Mode
+
+### Architecture Refactor: Removed Primary/Secondary Technique Split
+- **Behavior change**: Removed T1059-centric/secondary-technique execution model from runtime flow.
+- **Pipeline update** (`src/core/pipeline.py`):
+  - Removed `include_secondary_techniques` parameter from `translate_command()`.
+  - Added `ALL_TECHNIQUES = [T1059, T1218, T1027, T1105, T1071, T1543, T1055]` and evaluate all on every command.
+  - MITRE cache warm-up now happens for all command analyses.
+- **CLI update** (`src/cli/main.py`):
+  - Removed `--include-secondary-techniques` flag.
+  - Updated CLI description/help to reflect all-techniques default behavior.
+- **Documentation update** (`README.md`, `docs/cyber_kill_chain_mapping.md`):
+  - Removed “Primary vs Secondary” framing.
+  - Updated command examples to current default behavior.
+
+### Installable Package Support (`odt` command)
+- Added `pyproject.toml` with setuptools build configuration.
+- Added console script entry point:
+  - `odt = "cli.main:main"`
+- Install commands now supported:
+  - `pip install -e .` (editable)
+  - `pip install .` (environment install)
+- Verified executable help output via `.venv\Scripts\odt.exe --help`.
+
+### Batch Command Processing Feature
+- Added new batch processor module: `src/core/batch_processor.py`.
+- Supported batch input formats:
+  - `.txt` (one command per line)
+  - `.csv` (first column or explicit `command` header)
+  - `.json` (list of strings or list of objects with `command` field)
+- Added CLI flags:
+  - `--batch-input <path>`
+  - `--batch-output <filename>`
+  - `--batch-verbose`
+- Batch output now produces a **single aggregated JSON file** with:
+  - `batch_metadata`
+  - `results`
+  - `error_details`
+
+### Root-Level Batch Examples Added
+- Added example input files in repository root (next to `sample_commands.md`):
+  - `batch_commands_example.txt`
+  - `batch_commands_example.csv`
+  - `batch_commands_example.json`
+- Added README examples showing direct usage of these files.
+
+### Testing Additions
+- Added `tests/test_batch_processor.py` (5 tests): parsing and batch output shape.
+- Added `tests/test_cli.py` (3 tests): batch flags in help, removed legacy flag rejection, batch output file generation.
+- **Test count update**: 132 total tests passing in `.venv`.
+
 Date: 2026-03-02
 
 ## Phase 2 Extension: T1543 & T1055 Detection Implementation

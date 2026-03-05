@@ -85,17 +85,16 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
   Machine-readable format suitable for automation, SIEM integration, and analysis workflows
 
 - 🧪 **Comprehensive Testing**  
-  124 tests (98 unit + 26 integration/benign) covering normalization, confidence scoring, detection, decoding, and realistic attack chains (100% pass rate)
+  144 tests (117 unit + 27 integration/benign) covering normalization, confidence scoring, detection, decoding, batch processing, HTML reports, and realistic attack chains (100% pass rate)
 
-**Current Technique Coverage:**
-- **Primary**: T1059 (Command and Scripting Interpreter)
-- **Secondary** (optional): 
-  - T1218 (System Binary Proxy Execution)
-  - T1027 (Obfuscated Files or Information)
-  - T1105 (Ingress Tool Transfer)
-  - T1071 (Application Layer Protocol)
-  - T1543 (Create or Modify System Process)
-  - T1055 (Process Injection)
+**Current Technique Coverage (All Enabled by Default):**
+- T1059 (Command and Scripting Interpreter)
+- T1218 (System Binary Proxy Execution)
+- T1027 (Obfuscated Files or Information)
+- T1105 (Ingress Tool Transfer)
+- T1071 (Application Layer Protocol)
+- T1543 (Create or Modify System Process)
+- T1055 (Process Injection)
 
 ---
 
@@ -103,7 +102,7 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
 
 ## ⚙️ Requirements
 
-- **Python**: 3.6+ (3.8+ recommended)
+- **Python**: 3.8+
 - **Dependencies**: Listed in [requirements.txt](requirements.txt)
 
 > 💡 No external API keys or databases required for basic functionality. MITRE ATT&CK data is cached locally.
@@ -113,9 +112,9 @@ The **Offensive–Defensive Translator** addresses this mismatch by providing a 
 ## 🧰 Installation
 
 ### Prerequisites
-Ensure Python 3.6+ is installed. On Windows:
+Ensure Python 3.8+ is installed. On Windows:
 ```powershell
-python --version  # Should be 3.6 or higher
+python --version  # Should be 3.8 or higher
 ```
 
 On Linux (Ubuntu/Debian):
@@ -143,9 +142,24 @@ source venv/bin/activate  # On Linux/macOS
 pip install -r requirements.txt
 ```
 
-4. **Install in development mode** (optional):
+4. **Install in development mode** (recommended for CLI use):
 ```bash
 pip install -e .
+```
+
+After install, use the CLI directly:
+```bash
+odt --help
+```
+
+If Windows blocks the generated launcher on first run:
+```powershell
+Unblock-File .venv\Scripts\odt.exe
+```
+
+To install `odt` in a non-editable/system style for the active environment:
+```bash
+pip install .
 ```
 
 ---
@@ -192,8 +206,13 @@ OD-translator/
 │   ├── __init__.py
 │   ├── README.md                      # Testing documentation
 │   ├── test_parser.py                 # Normalization tests (10 tests)
-│   ├── test_detector.py               # Detection tests (24 tests)
-│   └── test_decoder.py                # Decoding tests (25 tests)
+│   ├── test_detector.py               # Detection tests (62 tests)
+│   ├── test_decoder.py                # Decoding tests (25 tests)
+│   ├── test_batch_processor.py        # Batch processing tests (5 tests)
+│   ├── test_cli.py                    # CLI integration tests (3 tests)
+│   ├── test_report_generator.py       # HTML report generation tests (12 tests)
+│   ├── test_realistic_commands.py     # Realistic command integration test (1 test)
+│   └── test_benign_commands.py        # Benign false-positive baseline tests (26 tests)
 │
 ├── scripts/                           # Utility scripts
 │   ├── build_mitre_db.py             # MITRE data fetcher
@@ -211,7 +230,9 @@ OD-translator/
 
 ## 🔧 Usage
 
-Run the CLI module from the project root. The entry point is `src.cli.main`.
+Run the CLI directly with the installed `odt` command.
+
+Fallback (without installation): `python src/cli/main.py`.
 
 ### Quick Help
 
@@ -220,6 +241,9 @@ View all available options and flags:
 python src/cli/main.py --help
 # or
 python src/cli/main.py -h
+
+# installed CLI command
+odt --help
 ```
 
 ### Basic Analysis
@@ -227,6 +251,9 @@ python src/cli/main.py -h
 Analyze a single command:
 ```bash
 python src/cli/main.py "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
+
+# installed CLI command
+odt "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
 ```
 
 > 💡 **Note**: The CLI accepts multi-part commands (joins all remaining args), so complex commands with spaces are handled correctly.
@@ -236,6 +263,9 @@ python src/cli/main.py "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplicatio
 Use the `-o` or `--output` flag to save results with automatic timestamp:
 ```bash
 python src/cli/main.py -o results.json "mshta.exe javascript:var s=new ActiveXObject('WScript.Shell');s.Run('cmd.exe /c whoami',0)"
+
+# installed CLI command
+odt -o results.json "mshta.exe javascript:var s=new ActiveXObject('WScript.Shell');s.Run('cmd.exe /c whoami',0)"
 ```
 
 Output saved to: `data/results/results_YYYYMMDD_HHMMSS.json`
@@ -249,6 +279,9 @@ python src/cli/main.py -d "powershell -encodedCommand RwBlAHQALQBQAHIAbwBjAGUAcw
 
 # JavaScript atob
 python src/cli/main.py --decode "mshta javascript:eval(atob('dGVzdA=='))"
+
+# installed CLI command
+odt --decode "mshta javascript:eval(atob('dGVzdA=='))"
 ```
 
 **Supported encodings:**
@@ -256,17 +289,82 @@ python src/cli/main.py --decode "mshta javascript:eval(atob('dGVzdA=='))"
 - JavaScript atob/fromCharCode
 - URL encoding
 
-### Include Secondary Techniques
+### Technique Detection Behavior
 
-By default, only T1059 detections are emitted. To include all techniques (T1218, T1027):
-```bash
-python src/cli/main.py --include-secondary-techniques "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\""
-```
+By default, all supported techniques are evaluated for every command.
 
 ### Analyze from Stdin
 
 ```bash
 echo 'rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"' | python src/cli/main.py
+
+# installed CLI command
+echo 'rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication"' | odt
+```
+
+### Batch Processing
+
+Process multiple commands from a single file and generate one aggregated JSON output.
+
+Supported input formats:
+- `.txt`: one command per line
+- `.csv`: first column or `command` column
+- `.json`: array of strings or array of objects containing `command`
+
+```bash
+odt --batch-input commands.txt
+odt --batch-input commands.csv --batch-output triage_batch.json
+odt --batch-input commands.json --batch-verbose
+```
+
+Root-level ready-to-run examples (next to `sample_commands.md`):
+```bash
+odt --batch-input batch_commands_example.txt --batch-output batch_from_txt.json
+odt --batch-input batch_commands_example.csv --batch-output batch_from_csv.json
+odt --batch-input batch_commands_example.json --batch-output batch_from_json.json
+```
+
+Batch output is saved to `data/results/` and includes:
+- `batch_metadata` (counts, timestamp, duration)
+- `results` (per-command analysis output)
+- `error_details` (any command-level failures)
+
+### HTML Report Generation
+
+Generate professional HTML reports for single commands or batch analysis with visualizations, timelines, and kill-chain mapping.
+
+```bash
+# Single command HTML report
+odt --generate-report "cmd.exe /c dir"
+
+# Batch analysis with HTML report
+odt --batch-input commands.txt --generate-report
+
+# Custom report output path
+odt --generate-report --report-output my_analysis.html "powershell.exe Get-Process"
+```
+
+Reports are saved to `data/reports/` by default and include:
+
+**Single Command Reports:**
+- Analyzed command and normalized form
+- Detected MITRE ATT&CK techniques
+- Kill-chain phase visualization
+- Expandable technique details (pattern, evidence, category)
+- Professional styling with dark theme
+
+**Batch Analysis Reports:**
+- Batch processing summary (total, processed, errors, duration)
+- Execution timeline with risk indicators
+- Kill-chain progression across all commands
+- Aggregated technique coverage table
+- Per-command detailed analysis
+- Error tracking and diagnostics
+
+Example:
+```bash
+odt --batch-input batch_commands_example.json --generate-report
+# Creates: data/reports/batch_20260304_212915.html
 ```
 
 ### PowerShell Quoting Tips
@@ -290,6 +388,8 @@ python --% src/cli/main.py mshta.exe "javascript:var p='po'+'wer'+'shell';var w=
 Force refresh the local MITRE ATT&CK cache:
 ```bash
 python src/cli/main.py "whoami" --refresh-mitre
+# installed CLI command
+odt "whoami" --refresh-mitre
 ```
 
 ### Sync Official MITRE Technique Docs (Offline)
@@ -521,10 +621,11 @@ The project includes comprehensive unit tests covering:
 - **📊 Confidence Scoring** (14 tests): Evidence-based scoring, bonuses, penalties, edge cases
 - **🎯 Technique Detection** (48 tests): T1059, T1218, T1027, T1105, T1071, T1543, T1055 detection with evidence extraction
 - **🔓 Obfuscation Decoding** (25 tests): PowerShell base64, JavaScript atob/fromCharCode, URL encoding
+- **📦 Batch Processing** (8 tests): CLI batch flags, CSV/JSON/TXT parsing, aggregated output validation
 - **🔗 Integration Tests** (1 test): Realistic attack chains with 100% detection accuracy
 - **✓ Benign Command Testing** (26 tests): False-positive baseline against legitimate commands
 
-**Total: 124 tests (100% pass rate)**
+**Total: 144 tests (100% pass rate)**
 
 ### Benign Command False-Positive Testing
 

@@ -318,7 +318,7 @@ Invoke-ReflectivePEInjection -PEPath C:\Temp\ransomware.dll -Target explorer.exe
 When you receive a suspicious command, run it through ODT:
 
 ```bash
-python -m src.cli.main --include-secondary-techniques 'powershell -c (New-Object Net.WebClient).DownloadString(...)'
+odt 'powershell -c (New-Object Net.WebClient).DownloadString(...)'
 ```
 
 The detected technique(s) and confidence scores tell you which kill chain stage the attacker is at.

