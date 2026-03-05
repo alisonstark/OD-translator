@@ -362,15 +362,101 @@
             <div class="section">
                 <h2>📋 Command Analysis</h2>
                 <span class="command-label">Input Command</span>
-                <div class="command-box">cmd.exe /c dir</div>
+                <div class="command-box">powershell.exe -c [System.Reflection.Assembly]::Load('beacon.dll') |%{.GetType('ReflectiveInjection').GetMethod('Inject').Invoke(,@(0))}</div>
                 <span class="command-label">Normalized Command</span>
-                <div class="command-box">cmd.exe /c dir</div>
+                <div class="command-box">powershell.exe -c [System.Reflection.Assembly]::Load('beacon.dll') |%{.GetType('ReflectiveInjection').GetMethod('Inject').Invoke(,@(0))}</div>
             </div>
 
             <div class="section">
                 <h2>🎯 Detected Techniques</h2>
 
-                <p style="color: #718096; font-style: italic;">No MITRE ATT&CK techniques detected.</p>
+                <div class="metadata">
+                    <div class="meta-item">
+                        <div class="meta-label">Total Detections</div>
+                        <div class="meta-value">3</div>
+                    </div>
+                </div>
+
+                <div class="detection-card">
+                    <div class="detection-header">
+                        <div>
+                            <span class="technique-id">T1059.001</span>
+                            <span class="technique-name">PowerShell</span>
+                        </div>
+                        <span class="risk-badge medium">medium</span>
+                        <span class="toggle-details">[+]</span>
+                    </div>
+                    <div class="detection-details">
+                        <div class="detail-label">Tactic</div>
+                        <div class="detail-value">Execution</div>
+                        <div class="detail-label">Behavior</div>
+                        <div class="detail-value">PowerShell Reflection Assembly Load</div>
+                        <div class="detail-label">Confidence</div>
+                        <div class="detail-value">69.0%</div>
+                        <div class="detail-label">Attacker Intent</div>
+                        <div class="detail-value">Likely malicious activity</div>
+                        <div class="detail-label">SOC Notes</div>
+                        <div class="detail-value">Further investigation recommended</div>
+                        <div class="detail-label">Telemetry Sources</div>
+                        <div class="detail-value">Bash audit logs, Linux process accounting, PowerShell operational logs, Sysmon Event ID 1, Sysmon Event ID 3 (Network Connection)</div>
+                        <div class="detail-label">Detection Opportunities</div>
+                        <div class="detail-value">Monitor for unusual process patterns, Check parent-child process relationships</div>
+                    </div>
+                </div>
+
+                <div class="detection-card">
+                    <div class="detection-header">
+                        <div>
+                            <span class="technique-id">T1055.002</span>
+                            
+                        </div>
+                        <span class="risk-badge medium">medium</span>
+                        <span class="toggle-details">[+]</span>
+                    </div>
+                    <div class="detection-details">
+                        <div class="detail-label">Tactic</div>
+                        <div class="detail-value">Defense Evasion</div>
+                        <div class="detail-label">Behavior</div>
+                        <div class="detail-value">Suspicious behavior</div>
+                        <div class="detail-label">Confidence</div>
+                        <div class="detail-value">50.0%</div>
+                        <div class="detail-label">Attacker Intent</div>
+                        <div class="detail-value">Suspicious activity requiring further investigation</div>
+                        <div class="detail-label">SOC Notes</div>
+                        <div class="detail-value">Further investigation recommended</div>
+                        <div class="detail-label">Telemetry Sources</div>
+                        <div class="detail-value">Process execution logs</div>
+                        <div class="detail-label">Detection Opportunities</div>
+                        <div class="detail-value">Monitor for unusual process patterns</div>
+                    </div>
+                </div>
+
+                <div class="detection-card">
+                    <div class="detection-header">
+                        <div>
+                            <span class="technique-id">T1055.001</span>
+                            
+                        </div>
+                        <span class="risk-badge medium">medium</span>
+                        <span class="toggle-details">[+]</span>
+                    </div>
+                    <div class="detection-details">
+                        <div class="detail-label">Tactic</div>
+                        <div class="detail-value">Defense Evasion</div>
+                        <div class="detail-label">Behavior</div>
+                        <div class="detail-value">Suspicious behavior</div>
+                        <div class="detail-label">Confidence</div>
+                        <div class="detail-value">50.0%</div>
+                        <div class="detail-label">Attacker Intent</div>
+                        <div class="detail-value">Suspicious activity requiring further investigation</div>
+                        <div class="detail-label">SOC Notes</div>
+                        <div class="detail-value">Further investigation recommended</div>
+                        <div class="detail-label">Telemetry Sources</div>
+                        <div class="detail-value">Process execution logs</div>
+                        <div class="detail-label">Detection Opportunities</div>
+                        <div class="detail-value">Monitor for unusual process patterns</div>
+                    </div>
+                </div>
 
             </div>
 
@@ -388,14 +474,14 @@
                         <div class="chain-phase-techniques">-</div>
                     </div>
 
-                    <div class="chain-phase ">
+                    <div class="chain-phase active">
                         <div class="chain-phase-name">Defense Evasion</div>
-                        <div class="chain-phase-techniques">-</div>
+                        <div class="chain-phase-techniques">T1055.002, T1055.001</div>
                     </div>
 
-                    <div class="chain-phase ">
+                    <div class="chain-phase active">
                         <div class="chain-phase-name">Execution</div>
-                        <div class="chain-phase-techniques">-</div>
+                        <div class="chain-phase-techniques">T1059.001</div>
                     </div>
 
                     <div class="chain-phase ">
@@ -427,7 +513,7 @@
             </div>
         </div>
         <div class="footer">
-            <p>Generated on 2026-03-05 00:29:05 UTC | OD-translator Phase 4 Report</p>
+            <p>Generated on 2026-03-05 02:36:09 UTC | OD-translator Phase 4 Report</p>
         </div>
     </div>
     <script>

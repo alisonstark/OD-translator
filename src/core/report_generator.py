@@ -49,6 +49,28 @@ def _get_technique_details(technique_id: str) -> Dict[str, Any]:
         }
 
 
+def _resolve_display_name(mitre: Dict[str, Any], fallback: str = "Unknown") -> str:
+    """Choose the most informative display name from MITRE mapping fields."""
+    tech_id = str(mitre.get("technique_id", "") or "")
+    sub_id = str(mitre.get("subtechnique_id", "") or "")
+    tech_name = str(mitre.get("technique", "") or "")
+    sub_name = str(mitre.get("subtechnique", "") or "")
+
+    if sub_name and sub_name not in {"Unknown", tech_id, sub_id}:
+        return sub_name
+    if tech_name and tech_name not in {"Unknown", tech_id}:
+        return tech_name
+    if sub_name:
+        return sub_name
+    if tech_name:
+        return tech_name
+    if sub_id:
+        return sub_id
+    if tech_id:
+        return tech_id
+    return fallback
+
+
 def _build_html_header(title: str) -> str:
     """Build HTML <head> section with embedded CSS."""
     css = """
@@ -476,32 +498,55 @@ def _build_single_command_html(analysis: Dict[str, Any]) -> str:
                 </div>
 """
         for det in detections:
-            technique_id = det.get("technique_id", "UNKNOWN")
-            technique_name = det.get("technique_name", "Unknown")
-            category = det.get("category", "General")
-            pattern = det.get("pattern", "N/A")
-            evidence = det.get("supporting_evidence", "N/A")
+            # Handle both flat structure (old) and nested structure (current with mitre_mapping)
+            mitre = det.get("mitre_mapping", {})
+            analysis = det.get("analysis", {})
+            enrichment = det.get("defensive_enrichment", {})
             
-            risk_level = "high" if det.get("is_suspicious", False) else "medium"
+            # Use subtechnique ID if available for more specificity
+            subtechnique_id = mitre.get("subtechnique_id", mitre.get("technique_id", det.get("technique_id", "UNKNOWN")))
+            technique_name = _resolve_display_name(mitre, det.get("technique_name", "Unknown"))
+            if technique_name == subtechnique_id:
+                technique_name = ""
+            category = mitre.get("tactic", det.get("category", "General"))
+            behavior = analysis.get("behavior", det.get("pattern", "N/A"))
+            confidence = analysis.get("confidence", 0.5)
+            attacker_intent = analysis.get("attacker_intent", "Unknown")
+            
+            # Defensive enrichment data
+            telemetry = enrichment.get("telemetry_sources", [])
+            detections_ops = enrichment.get("detection_opportunities", [])
+            soc_notes = enrichment.get("soc_notes", "N/A")
+            
+            risk_level = "high" if confidence > 0.7 else "medium" if confidence > 0.4 else "low"
             risk_class = f" {risk_level}-risk" if risk_level == "high" else ""
+            technique_name_html = f'<span class="technique-name">{technique_name}</span>' if technique_name else ""
             
             detections_html += f"""
                 <div class="detection-card{risk_class}">
                     <div class="detection-header">
                         <div>
-                            <span class="technique-id">{technique_id}</span>
-                            <span class="technique-name">{technique_name}</span>
+                            <span class="technique-id">{subtechnique_id}</span>
+                            {technique_name_html}
                         </div>
                         <span class="risk-badge {risk_level}">{risk_level}</span>
                         <span class="toggle-details">[+]</span>
                     </div>
                     <div class="detection-details">
-                        <div class="detail-label">Category</div>
+                        <div class="detail-label">Tactic</div>
                         <div class="detail-value">{category}</div>
-                        <div class="detail-label">Pattern Match</div>
-                        <div class="detail-value">{pattern}</div>
-                        <div class="detail-label">Supporting Evidence</div>
-                        <div class="detail-value">{evidence}</div>
+                        <div class="detail-label">Behavior</div>
+                        <div class="detail-value">{behavior}</div>
+                        <div class="detail-label">Confidence</div>
+                        <div class="detail-value">{confidence:.1%}</div>
+                        <div class="detail-label">Attacker Intent</div>
+                        <div class="detail-value">{attacker_intent}</div>
+                        <div class="detail-label">SOC Notes</div>
+                        <div class="detail-value">{soc_notes}</div>
+                        <div class="detail-label">Telemetry Sources</div>
+                        <div class="detail-value">{', '.join(telemetry) if telemetry else 'N/A'}</div>
+                        <div class="detail-label">Detection Opportunities</div>
+                        <div class="detail-value">{', '.join(detections_ops) if detections_ops else 'N/A'}</div>
                     </div>
                 </div>
 """
@@ -523,13 +568,18 @@ def _build_killchain_section(detections: List[Dict[str, Any]]) -> str:
     technique_by_phase = {}
     
     for det in detections:
-        tech_id = det.get("technique_id", "")
+        # Handle nested mitre_mapping structure
+        mitre = det.get("mitre_mapping", {})
+        tech_id = mitre.get("technique_id", det.get("technique_id", ""))
+        # Use subtechnique ID for more specificity in display
+        sub_tech_id = mitre.get("subtechnique_id", tech_id)
+        
         if tech_id in KILL_CHAIN_PHASES:
             phase_num = KILL_CHAIN_PHASES[tech_id]
             active_phases.add(phase_num)
             if phase_num not in technique_by_phase:
                 technique_by_phase[phase_num] = []
-            technique_by_phase[phase_num].append(tech_id)
+            technique_by_phase[phase_num].append(sub_tech_id)
     
     html = """
             <div class="section">
@@ -603,7 +653,8 @@ def _build_batch_report_html(batch_data: Dict[str, Any]) -> str:
         input_cmd = analysis.get("input_command", "")
         detections = analysis.get("detections", [])
         
-        has_risk = any(det.get("is_suspicious", False) for det in detections)
+        # Check for high-risk detections based on confidence
+        has_risk = any(det.get("analysis", {}).get("confidence", 0) > 0.7 for det in detections)
         risk_class = " high-risk" if has_risk else ""
         
         detection_summary = f"{len(detections)} detection(s)" if detections else "Clean"
@@ -627,16 +678,22 @@ def _build_batch_report_html(batch_data: Dict[str, Any]) -> str:
     for result in results:
         analysis = result.get("result", {})
         for det in analysis.get("detections", []):
-            tech_id = det.get("technique_id", "")
-            if tech_id not in all_detections:
-                all_detections[tech_id] = {
-                    "name": det.get("technique_name", "Unknown"),
+            # Handle nested mitre_mapping structure
+            mitre = det.get("mitre_mapping", {})
+            tech_id = mitre.get("technique_id", det.get("technique_id", ""))
+            # Use subtechnique ID for more specificity
+            sub_tech_id = mitre.get("subtechnique_id", tech_id)
+            
+            if not tech_id:
+                continue
+            if sub_tech_id not in all_detections:
+                all_detections[sub_tech_id] = {
+                    "name": _resolve_display_name(mitre, det.get("technique_name", "Unknown")),
                     "count": 0,
-                    "commands": [],
+                    "commands": set(),
                 }
-            all_detections[tech_id]["count"] += 1
-            input_cmd = analysis.get("input_command", "")
-            all_detections[tech_id]["commands"].append(result.get("index", 0))
+            all_detections[sub_tech_id]["count"] += 1
+            all_detections[sub_tech_id]["commands"].add(result.get("index", 0))
     
     if all_detections:
         batch_html += """
@@ -647,17 +704,20 @@ def _build_batch_report_html(batch_data: Dict[str, Any]) -> str:
                         <th>Technique ID</th>
                         <th>Name</th>
                         <th>Detections</th>
-                        <th>Commands</th>
+                        <th>Unique Commands</th>
+                        <th>Command IDs</th>
                     </tr>
 """
         for tech_id in sorted(all_detections.keys()):
             info = all_detections[tech_id]
-            cmds = ", ".join(map(str, info["commands"]))
+            unique_commands = sorted(info["commands"])
+            cmds = ", ".join(map(str, unique_commands))
             batch_html += f"""
                     <tr>
                         <td><strong>{tech_id}</strong></td>
                         <td>{info['name']}</td>
                         <td>{info['count']}</td>
+                        <td>{len(unique_commands)}</td>
                         <td>{cmds}</td>
                     </tr>
 """
@@ -707,10 +767,32 @@ def _build_batch_report_html(batch_data: Dict[str, Any]) -> str:
                         <strong style="color: #667eea;">{len(detections)} Technique(s) Detected:</strong>
 """
             for det in detections:
+                # Handle nested mitre_mapping structure
+                mitre = det.get("mitre_mapping", {})
+                analysis_data = det.get("analysis", {})
+                enrichment = det.get("defensive_enrichment", {})
+                
+                # Use subtechnique ID for specificity
+                sub_tech_id = mitre.get("subtechnique_id", mitre.get("technique_id", det.get("technique_id", "?")))
+                sub_tech_name = _resolve_display_name(mitre, det.get("technique_name", "?"))
+                tactic = mitre.get("tactic", "Unknown")
+                confidence = analysis_data.get("confidence", 0)
+                behavior = analysis_data.get("behavior", det.get("supporting_evidence", "N/A"))
+                telemetry = enrichment.get("telemetry_sources", [])
+                detections_ops = enrichment.get("detection_opportunities", [])
+                
                 batch_html += f"""
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>{det.get('technique_id', '?')}</strong> - {det.get('technique_name', '?')}
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">{det.get('supporting_evidence', 'N/A')}</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>{sub_tech_id}</strong> - {sub_tech_name}
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> {tactic} | <strong>Confidence:</strong> {confidence:.1%} | <strong>Behavior:</strong> {behavior}
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> {', '.join(detections_ops) if detections_ops else 'N/A'}
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> {', '.join(telemetry) if telemetry else 'N/A'}
+                            </div>
                         </div>
 """
             batch_html += """

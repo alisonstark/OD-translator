@@ -55,6 +55,29 @@ def _dedupe_evidence(evidence: List[str]) -> List[str]:
         deduped.append(item)
     return deduped
 
+
+def _normalize_attacker_intent(attacker_intent: str, confidence: float) -> str:
+    """Adjust generic attacker intent wording so it aligns with confidence level."""
+    intent = (attacker_intent or "").strip()
+    lowered = intent.lower()
+
+    # Only remap generic fallback wording. Keep specific metadata intent intact.
+    generic_intents = {
+        "likely malicious activity",
+        "suspicious activity requiring investigation",
+        "execute code via interpreter or proxy",
+    }
+    if lowered not in generic_intents:
+        return intent
+
+    if confidence >= 0.75:
+        return "Highly suspicious activity with strong malicious indicators"
+    if confidence >= 0.60:
+        return "Likely malicious activity"
+    if confidence >= 0.40:
+        return "Suspicious activity requiring further investigation"
+    return "Low-confidence suspicious signal; corroborate with additional telemetry"
+
 # This module defines the output structure for the ODT (Offense Detection Translator) system, 
 # which takes the original command, the normalized command, and the detections from various techniques 
 # to build a structured output that can be used for reporting or further analysis.
@@ -90,7 +113,10 @@ def _enrich_detections(detections: List[Dict[str, Any]]) -> List[Dict[str, Any]]
             },
             "analysis": {
                 "behavior": detection.get("behavior", "Suspicious activity detected"),
-                "attacker_intent": detection.get("attacker_intent", "Execute code via interpreter or proxy"),
+                "attacker_intent": _normalize_attacker_intent(
+                    detection.get("attacker_intent", "Suspicious activity requiring investigation"),
+                    float(detection.get("confidence", 0.5)),
+                ),
                 "confidence": detection.get("confidence", 0.5),
                 "evidence": _dedupe_evidence(detection.get("evidence", [])),
             },

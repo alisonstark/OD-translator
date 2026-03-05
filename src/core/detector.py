@@ -197,7 +197,7 @@ def _detect_technique_generic(
                 "subtechnique": subtechnique_name,
                 "tactic": tactic,
                 "behavior": metadata.get("behavior", "Suspicious behavior"),
-                "attacker_intent": metadata.get("attacker_intent", "Likely malicious activity"),
+                "attacker_intent": metadata.get("attacker_intent", "Suspicious activity requiring investigation"),
                 "confidence": score_confidence(DEFAULT_BASE_CONFIDENCE, evidence),
                 "evidence": evidence,
                 "defensive_enrichment": metadata.get("defensive_enrichment", {}),

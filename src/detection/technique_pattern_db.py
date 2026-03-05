@@ -13,7 +13,7 @@ RULES = [
         },
         {
             "id": "ps_reflection_assembly_load",
-            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\[Reflection\.Assembly\]::Load\(", # Reflection Assembly Load
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\[(?:System\.)?Reflection\.Assembly\]::Load\(", # Reflection Assembly Load (with or without System prefix)
             "technique": "T1059",
             "sub_technique": ".001"
         },
@@ -1018,5 +1018,17 @@ RULES = [
             "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\$reflectivepei|Reflective(?:DLL|PE|Code)Injection",
             "technique": "T1055",
             "sub_technique": ".002"
+        },
+        {
+            "id": "reflection_assembly_gettype_invoke",
+            "pattern": r"(?:powershell|pwsh)(?:\.exe)?\s+.*\[(?:System\.)?Reflection\.Assembly\]::Load.*(?:GetType|GetMethod|Invoke)",
+            "technique": "T1055",
+            "sub_technique": ".002"
+        },
+        {
+            "id": "dotnet_reflection_injection_pattern",
+            "pattern": r"(?i)\.GetType\('.*(?:Injection|Inject).*'\).*GetMethod.*Invoke",
+            "technique": "T1055",
+            "sub_technique": ".001"
         },
     ]
