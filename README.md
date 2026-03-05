@@ -197,6 +197,10 @@ OD-translator/
 │       └── technique_pattern_db.py    # Detection pattern database
 │
 ├── data/                              # Data storage
+│   ├── batch_commands/                # Batch command examples
+│   │   ├── batch_commands_example.csv # CSV format examples
+│   │   ├── batch_commands_example.json # JSON format examples
+│   │   └── batch_commands_example.txt # Text format examples
 │   ├── mitre/                         # MITRE ATT&CK cache
 │   │   └── attackcti_t1059.json      # Cached technique data
 │   └── results/                       # Analysis output files
@@ -317,11 +321,11 @@ odt --batch-input commands.csv --batch-output triage_batch.json
 odt --batch-input commands.json --batch-verbose
 ```
 
-Root-level ready-to-run examples (next to `sample_commands.md`):
+Ready-to-run examples (in `data/batch_commands/`):
 ```bash
-odt --batch-input batch_commands_example.txt --batch-output batch_from_txt.json
-odt --batch-input batch_commands_example.csv --batch-output batch_from_csv.json
-odt --batch-input batch_commands_example.json --batch-output batch_from_json.json
+odt --batch-input data/batch_commands/batch_commands_example.txt --batch-output batch_from_txt.json
+odt --batch-input data/batch_commands/batch_commands_example.csv --batch-output batch_from_csv.json
+odt --batch-input data/batch_commands/batch_commands_example.json --batch-output batch_from_json.json
 ```
 
 Batch output is saved to `data/results/` and includes:
@@ -363,7 +367,7 @@ Reports are saved to `data/reports/` by default and include:
 
 Example:
 ```bash
-odt --batch-input batch_commands_example.json --generate-report
+odt --batch-input data/batch_commands/batch_commands_example.json --generate-report
 # Creates: data/reports/batch_20260304_212915.html
 ```
 

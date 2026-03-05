@@ -23,4 +23,5 @@ build/
 
 # Project-specific
 TODO.md
-data/results/
+data/results/*.json
+data/reports/*.html

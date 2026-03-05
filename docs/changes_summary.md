@@ -99,8 +99,8 @@ Date: 2026-03-04
   - `results`
   - `error_details`
 
-### Root-Level Batch Examples Added
-- Added example input files in repository root (next to `sample_commands.md`):
+### Batch Examples Organized
+- Added example input files in `data/batch_commands/`:
   - `batch_commands_example.txt`
   - `batch_commands_example.csv`
   - `batch_commands_example.json`
